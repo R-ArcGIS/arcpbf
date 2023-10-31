@@ -3,12 +3,12 @@ mod geometry;
 mod parse;
 use parse::field_type_robj_mapper;
 
-/// Return string `"Hello world!"` to R.
-/// @export
-#[extendr]
-fn hello_world() -> &'static str {
-    "Hello world!"
-}
+mod table;
+use process::process_layer;
+use table::process_table;
+
+mod process;
+
 
 use esripbf::esri_p_buffer::FeatureCollectionPBuffer;
 use esripbf::feature_collection_p_buffer::{
@@ -25,6 +25,14 @@ fn open_pbf(path: &str) -> Raw {
     let crs = Cursor::new(ff);
     Raw::from_bytes(&crs.into_inner())
 }
+
+// #[extendr]
+// fn process_pbf(proto: Raw) -> Robj {
+//     let bits = proto.as_slice();
+//     let fc = FeatureCollectionPBuffer::decode(bits).unwrap();
+//     let res = fc.query_result.unwrap().results.unwrap();
+//     ().into_robj()
+// }
 
 #[extendr]
 fn read_pbf(path: &str) -> Robj {
@@ -57,7 +65,9 @@ fn read_pbf(path: &str) -> Robj {
     // need to remove unwraps probably for tables
 
     if fr.spatial_reference.is_none() {
-        return geometry::process_table(fr);
+        return process_table(fr);
+    } else {
+        return process_layer(fr);
     }
 
         // based on the type of input we need to assign geom_processor
@@ -134,7 +144,6 @@ fn read_pbf(path: &str) -> Robj {
 // See corresponding C code in `entrypoint.c`.
 extendr_module! {
     mod arcpbf;
-    fn hello_world;
     fn read_pbf;
     fn open_pbf;
 }

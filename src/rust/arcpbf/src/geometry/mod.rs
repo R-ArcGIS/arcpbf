@@ -4,9 +4,6 @@ pub use poly::{read_polygon, read_polyline};
 pub mod point;
 pub use point::*;
 
-pub mod table;
-pub use table::*;
-
 use esripbf::esri_p_buffer::feature_collection_p_buffer::{Scale, Translate};
 
 // Delta decodes an integer vector mutably
