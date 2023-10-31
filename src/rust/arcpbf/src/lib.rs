@@ -39,7 +39,7 @@ fn read_pbf(path: &str) -> Robj {
         todo!()
     };
 
-    
+
     let n = fr.features.len();
     let n_fields = fr.fields.len();
 
@@ -53,6 +53,9 @@ fn read_pbf(path: &str) -> Robj {
     // 
     // transform informatoion used when processing geometry
     // need to remove unwraps probably for tables
+    if fr.geometry_properties.is_none() {
+        return geometry::process_table(fr);
+    }
     let transform = fr.transform.unwrap();
     let trans = transform.clone().translate.unwrap();
     let scale = transform.scale.unwrap();
