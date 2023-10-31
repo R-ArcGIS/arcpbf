@@ -1,11 +1,6 @@
 use extendr_api::prelude::*;
 
-use esripbf::{
-    feature_collection_p_buffer::{
-        feature::CompressedGeometry,
-        Translate, Scale
-    },
-};
+use esripbf::feature_collection_p_buffer::{feature::CompressedGeometry, Scale, Translate};
 
 use crate::geometry::delta_decode;
 
@@ -30,9 +25,8 @@ pub fn read_multipoint(x: Option<CompressedGeometry>, trans: &Translate, scale: 
     if x.is_none() {
         let empty_mpnt = Doubles::new(0)
             .into_robj()
-            .set_attrib(
-                "dim", Integers::from_values([0, 2])
-            ).unwrap();
+            .set_attrib("dim", Integers::from_values([0, 2]))
+            .unwrap();
         return empty_mpnt;
     }
 

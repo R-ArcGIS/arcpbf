@@ -1,13 +1,11 @@
-use esripbf::feature_collection_p_buffer::{FeatureResult, Value, FieldType};
-use extendr_api::prelude::*;
 use crate::field_type_robj_mapper;
+use esripbf::feature_collection_p_buffer::{FeatureResult, FieldType, Value};
+use extendr_api::prelude::*;
 
 pub fn process_table(x: FeatureResult) -> Robj {
-
     let n = x.features.len();
     let n_fields = x.fields.len();
 
-    
     let field_types = x
         .fields
         .iter()
@@ -31,14 +29,12 @@ pub fn process_table(x: FeatureResult) -> Robj {
 
     // iterate through features and push into attr_vecs
     // should do the same for coordinates during this iteration but not at the moment
-    feats
-        .into_iter()
-        .for_each(|xi| {
-            let atrs = xi.attributes;
-            atrs.into_iter()
-                .enumerate()
-                .for_each(|(i, ai)| attr_vecs[i].push(ai));
-        });
+    feats.into_iter().for_each(|xi| {
+        let atrs = xi.attributes;
+        atrs.into_iter()
+            .enumerate()
+            .for_each(|(i, ai)| attr_vecs[i].push(ai));
+    });
 
     let res_vecs = attr_vecs
         .into_iter()

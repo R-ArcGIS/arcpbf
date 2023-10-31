@@ -20,14 +20,18 @@ pub fn read_poly(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scale
     let lens = geoms.lengths;
     let mut crds = geoms.coords;
 
-    // chat gpt one here. 
-    let ranges: Vec<Range<usize>> = lens.iter().scan(0, |state, &len| {
-        let start = *state;
-        *state += (len as usize) * 2;
-        Some(start..*state)
-    }).collect();
+    // chat gpt one here.
+    let ranges: Vec<Range<usize>> = lens
+        .iter()
+        .scan(0, |state, &len| {
+            let start = *state;
+            *state += (len as usize) * 2;
+            Some(start..*state)
+        })
+        .collect();
 
-    let partitions = ranges.into_iter()
+    let partitions = ranges
+        .into_iter()
         .map(|li| {
             // let r = 0..((li as usize) * 2);
             let part = &mut crds[li];
@@ -39,7 +43,6 @@ pub fn read_poly(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scale
 
     List::from_values(partitions)
 }
-
 
 pub fn read_polygon(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scale) -> Robj {
     read_poly(x, trans, scale)

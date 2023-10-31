@@ -1,7 +1,6 @@
 use extendr_api::prelude::*;
 mod geometry;
 mod parse;
-use geometry::*;
 use parse::field_type_robj_mapper;
 
 /// Return string `"Hello world!"` to R.
@@ -12,7 +11,10 @@ fn hello_world() -> &'static str {
 }
 
 use esripbf::esri_p_buffer::FeatureCollectionPBuffer;
-use esripbf::feature_collection_p_buffer::{query_result::Results, FieldType, Value};
+use esripbf::feature_collection_p_buffer::{
+    query_result::Results, FieldType, Value, 
+    GeometryType
+};
 use std::io::Cursor;
 
 use prost::Message;
@@ -43,7 +45,7 @@ fn read_pbf(path: &str) -> Robj {
     let n = fr.features.len();
     let n_fields = fr.fields.len();
 
-    // If fr.geometry_properties is None then its a table
+    // If fr.spatial_reference is None then its a table
     // If Some() then its a feature layer
     // There should be two functions here.
     //   1. Process Tables
@@ -53,9 +55,22 @@ fn read_pbf(path: &str) -> Robj {
     // 
     // transform informatoion used when processing geometry
     // need to remove unwraps probably for tables
-    if fr.geometry_properties.is_none() {
+
+    if fr.spatial_reference.is_none() {
         return geometry::process_table(fr);
     }
+
+        // based on the type of input we need to assign geom_processor
+    // a function to process each individaul geometry
+    let geom_processor = match fr.geometry_type() {
+        GeometryType::EsriGeometryTypePoint => geometry::read_point,
+        GeometryType::EsriGeometryTypeMultipoint => geometry::read_multipoint,
+        GeometryType::EsriGeometryTypePolyline => geometry::read_polyline,
+        GeometryType::EsriGeometryTypePolygon => geometry::read_polygon,
+        GeometryType::EsriGeometryTypeMultipatch => todo!(),
+        GeometryType::EsriGeometryTypeNone => todo!(),
+    };
+
     let transform = fr.transform.unwrap();
     let trans = transform.clone().translate.unwrap();
     let scale = transform.scale.unwrap();
@@ -84,6 +99,7 @@ fn read_pbf(path: &str) -> Robj {
     // access geometries and attributes separately
     let feats = fr.features;
 
+
     // iterate through features and push into attr_vecs
     // should do the same for coordinates during this iteration but not at the moment
     let geoms = feats
@@ -94,7 +110,7 @@ fn read_pbf(path: &str) -> Robj {
                 .enumerate()
                 .for_each(|(i, ai)| attr_vecs[i].push(ai));
 
-            read_multipoint(xi.compressed_geometry, &trans, &scale).into_robj()
+            geom_processor(xi.compressed_geometry, &trans, &scale).into_robj()
         })
         .collect::<Vec<Robj>>();
 
