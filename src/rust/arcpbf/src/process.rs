@@ -1,10 +1,10 @@
 use extendr_api::prelude::*;
 use crate::{geometry, field_type_robj_mapper};
-
+use crate::table::process_table;
 
 use esripbf::feature_collection_p_buffer::{
     FeatureResult, FieldType, Value, 
-    GeometryType
+    GeometryType, CountResult, ObjectIdsResult
 };
 
 
@@ -103,3 +103,50 @@ pub fn process_layer(fr: FeatureResult) -> Robj {
     res.into_robj()
 }
 
+pub fn process_feature_result(fr: FeatureResult) -> Robj {
+    // for now we will return NULL if z or m dimensions are present
+    if fr.has_m || fr.has_z {
+        eprintln!("Warning message:\nZ and M dimensions are not supported at this time.");
+        return ().into_robj();
+    }
+    // If fr.spatial_reference is None then its a table
+    // If Some() then its a feature layer
+    // There should be two functions here.
+    //   1. Process Tables
+    //   2. Process Geometries
+    //      - If Multipatch or has Z or has M error for now
+    //      - they are not supported
+    // 
+    // transform informatoion used when processing geometry
+    // need to remove unwraps probably for tables
+
+    if fr.spatial_reference.is_none() {
+        return process_table(fr)
+    } else {
+        process_layer(fr)
+    }
+}
+
+
+pub fn process_counts(x: CountResult) -> Robj {
+    Rfloat::from(x.count as f64).into_robj()
+}
+
+pub fn process_oid(x: ObjectIdsResult) -> Robj {
+    let ids = x
+        .object_ids
+        .into_iter()
+        .map(|xi| Rfloat::from(xi as f64))
+        .collect::<Doubles>();
+
+    let row_ind = (1..=ids.len())
+        .map(|i| Rint::from(i as i32))
+        .collect::<Integers>();
+
+    List::from_names_and_values([x.object_id_field_name], [ids])
+        .unwrap()
+        .set_class(&["data.frame"])
+        .unwrap()
+        .set_attrib("row.names", row_ind)
+        .unwrap()
+}
