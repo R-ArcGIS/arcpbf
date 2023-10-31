@@ -38,10 +38,19 @@ fn read_pbf(path: &str) -> Robj {
     } else {
         todo!()
     };
+
     
     let n = fr.features.len();
     let n_fields = fr.fields.len();
 
+    // If fr.geometry_properties is None then its a table
+    // If Some() then its a feature layer
+    // There should be two functions here.
+    //   1. Process Tables
+    //   2. Process Geometries
+    //      - If Multipatch or has Z or has M error for now
+    //      - they are not supported
+    // 
     // transform informatoion used when processing geometry
     // need to remove unwraps probably for tables
     let transform = fr.transform.unwrap();
