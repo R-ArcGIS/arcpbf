@@ -137,6 +137,52 @@ res <- multi_resp_process(resps) |>
 head(res)
 ```
 
+## Benchmarking
+
+Below is a bench mark that compares processing pbfs to the current approach of processing 
+raw json in arcgislayers and arcgisutils. The below recreates the example from the README of
+arcgislayers. 
+
+```{r}
+jsn <- function() {
+  json_reqs <- c(
+    "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties_Generalized_Boundaries/FeatureServer/0/query?outFields=%2A&where=1%3D1&outSR=%7B%22wkid%22%3A4326%7D&returnGeometry=TRUE&token=&f=json&resultOffset=0",
+    "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties_Generalized_Boundaries/FeatureServer/0/query?outFields=%2A&where=1%3D1&outSR=%7B%22wkid%22%3A4326%7D&returnGeometry=TRUE&token=&f=json&resultOffset=2001"
+  )
+  reqs <- lapply(json_reqs, httr2::request) 
+  
+  httr2::multi_req_perform(reqs) |> 
+    lapply(function(x) arcgisutils::parse_esri_json(httr2::resp_body_string(x))) |> 
+    data.table::rbindlist() |> 
+    sf::st_as_sf()
+  
+}
+
+# protobuff processing 
+pbf <- function() {
+  
+  pbf_reqs <- c(
+    "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties_Generalized_Boundaries/FeatureServer/0/query?outFields=%2A&where=1%3D1&outSR=%7B%22wkid%22%3A4326%7D&returnGeometry=TRUE&token=&f=pbf&resultOffset=0",
+    "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties_Generalized_Boundaries/FeatureServer/0/query?outFields=%2A&where=1%3D1&outSR=%7B%22wkid%22%3A4326%7D&returnGeometry=TRUE&token=&f=pbf&resultOffset=2001"
+  )
+  
+  reqs <- lapply(pbf_reqs, httr2::request)
+  
+  httr2::multi_req_perform(reqs) |> 
+    multi_resp_process() |> 
+    post_process_pbf()
+}
+
+bench::mark(
+  jsn(),
+  pbf(),
+  check = FALSE,
+  relative = TRUE,
+  iterations = 5
+)
+```
+
+
 ## Internals 
 
 Internally, there is a rust crate [`esripbf`](./src/rust/esripbf) which is a

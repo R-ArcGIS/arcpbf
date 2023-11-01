@@ -30,8 +30,8 @@ it has no hard dependencies.
     object will be returned
 - `multi_resp_process()` processes a list of `httr2_response` using
   `process_pbf()`
-  - note that it requires each element to be a successful 200 status
-    request
+  - if an element is not a response or have a 200 status code, `NULL` is
+    returned
 
 ## Basic usage
 
@@ -272,6 +272,58 @@ head(res)
 #>                         geometry
 #> 1 POLYGON ((-17264972 2244291...
 #>  [ reached 'max' / getOption("max.print") -- omitted 5 rows ]
+```
+
+## Benchmarking
+
+Below is a bench mark that compares processing pbfs to the current
+approach of processing raw json in arcgislayers and arcgisutils. The
+below recreates the example from the README of arcgislayers.
+
+``` r
+jsn <- function() {
+  json_reqs <- c(
+    "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties_Generalized_Boundaries/FeatureServer/0/query?outFields=%2A&where=1%3D1&outSR=%7B%22wkid%22%3A4326%7D&returnGeometry=TRUE&token=&f=json&resultOffset=0",
+    "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties_Generalized_Boundaries/FeatureServer/0/query?outFields=%2A&where=1%3D1&outSR=%7B%22wkid%22%3A4326%7D&returnGeometry=TRUE&token=&f=json&resultOffset=2001"
+  )
+  reqs <- lapply(json_reqs, httr2::request) 
+  
+  httr2::multi_req_perform(reqs) |> 
+    lapply(function(x) arcgisutils::parse_esri_json(httr2::resp_body_string(x))) |> 
+    data.table::rbindlist() |> 
+    sf::st_as_sf()
+  
+}
+
+# protobuff processing 
+pbf <- function() {
+  
+  pbf_reqs <- c(
+    "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties_Generalized_Boundaries/FeatureServer/0/query?outFields=%2A&where=1%3D1&outSR=%7B%22wkid%22%3A4326%7D&returnGeometry=TRUE&token=&f=pbf&resultOffset=0",
+    "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties_Generalized_Boundaries/FeatureServer/0/query?outFields=%2A&where=1%3D1&outSR=%7B%22wkid%22%3A4326%7D&returnGeometry=TRUE&token=&f=pbf&resultOffset=2001"
+  )
+  
+  reqs <- lapply(pbf_reqs, httr2::request)
+  
+  httr2::multi_req_perform(reqs) |> 
+    multi_resp_process() |> 
+    post_process_pbf()
+}
+
+bench::mark(
+  jsn(),
+  pbf(),
+  check = FALSE,
+  relative = TRUE,
+  iterations = 5
+)
+#> Warning: Some expressions had a GC in every iteration; so filtering is
+#> disabled.
+#> # A tibble: 2 × 6
+#>   expression   min median `itr/sec` mem_alloc `gc/sec`
+#>   <bch:expr> <dbl>  <dbl>     <dbl>     <dbl>    <dbl>
+#> 1 jsn()       3.62   3.48      1         2.67     4.81
+#> 2 pbf()       1      1         3.12      1        1
 ```
 
 ## Internals
