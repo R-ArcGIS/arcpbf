@@ -11,11 +11,14 @@
 #' @useDynLib arcpbf, .registration = TRUE
 NULL
 
+#' @export
 read_pbf <- function(path) .Call(wrap__read_pbf, path)
 
+#' @export
 open_pbf <- function(path) .Call(wrap__open_pbf, path)
 
-process_pbf <- function(protos) .Call(wrap__process_pbf, protos)
+#' @export
+process_pbf <- function(proto) .Call(wrap__process_pbf, proto)
 
 
 # nolint end

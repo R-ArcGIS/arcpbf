@@ -1,4 +1,5 @@
 use extendr_api::prelude::*;
+use crate::parse::parse_spatial_ref;
 use crate::{geometry, field_type_robj_mapper};
 use crate::table::process_table;
 
@@ -30,12 +31,7 @@ pub fn process_layer(fr: FeatureResult) -> Robj {
     // in sfc object
     let sr = fr.spatial_reference.unwrap();
     
-    let sr_list = list!(
-        wkt = sr.wkt,
-        latest_wkid = sr.latest_wkid as f64,
-        vcs_wkid = sr.vcs_wkid as f64,
-        latest_vcs_wkid = sr.latest_vcs_wkid as f64,
-    );
+    let sr_list = parse_spatial_ref(sr);
 
     let transform = fr.transform.unwrap();
     let trans = transform.clone().translate.unwrap();
@@ -151,3 +147,4 @@ pub fn process_oid(x: ObjectIdsResult) -> Robj {
         .set_attrib("row.names", row_ind)
         .unwrap()
 }
+

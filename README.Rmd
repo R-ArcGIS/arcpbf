@@ -18,7 +18,41 @@ knitr::opts_chunk$set(
 `{arcpbf}` is an R package that processes Esri Protocol Buffers. It is written
 in Rust and powered by the [extendr](https://github.com/extendr/extendr) library.
 
+arcpbf has functions for reading protocol buffer (pbf) results from an ArcGIS 
+REST API result. pbf results are returned when `f=pbf` in a [query](https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm). 
 
+- `open_pbf()` will read a FeatureCollection `pbf` file into a raw vector
+- `read_pbf()` will read a FeatureCollection `pbf` file _and_ process it
+- `process_pbf()` will process a raw vector or a list of raw vectors
+
+```{r}
+library(arcpbf)
+
+tmp <- tempfile()
+
+download.file(
+  "https://raw.githubusercontent.com/JosiahParry/arcpbf/main/inst/pbfs/count.pbf",
+  tmp
+)
+
+read_pbf(tmp)
+```
+
+
+Processing a response from a REST request: 
+
+```{r}
+
+url <- "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=*&f=pbf&token="
+
+resp <- httr2::request(url) |> 
+  httr2::req_perform() |> 
+  httr2::resp_body_raw()
+
+
+x <- process_pbf(resp)
+head(x$attributes)
+```
 
 
 ## Internals 
