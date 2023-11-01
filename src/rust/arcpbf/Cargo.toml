@@ -12,4 +12,3 @@ name = 'arcpbf'
 extendr-api = '*'
 esripbf = { path = "../esripbf" }
 prost = "0.12.1"
-rayon = "1.8.0"

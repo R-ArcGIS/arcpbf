@@ -4,8 +4,7 @@ mod parse;
 use parse::field_type_robj_mapper;
 
 mod table;
-use process::{process_layer, process_feature_result, process_oid, process_counts};
-use table::process_table;
+use process::{process_feature_result, process_oid, process_counts};
 
 mod process;
 
@@ -25,7 +24,7 @@ fn open_pbf(path: &str) -> Raw {
     Raw::from_bytes(&crs.into_inner())
 }
 
-fn process_pbf(proto: &[u8]) -> Robj {
+fn process_pbf_(proto: &[u8]) -> Robj {
     // let bits = proto.as_slice();
     let fc = FeatureCollectionPBuffer::decode(proto).unwrap();
     let res = fc.query_result.unwrap().results.unwrap();
@@ -37,27 +36,26 @@ fn process_pbf(proto: &[u8]) -> Robj {
     }
 }
 
-use rayon::prelude::*;
+#[extendr]
+fn process_pbf(proto: Robj) -> Robj {
 
-fn par_process_pbf_raw(protos: List) -> List {
-    let bit_vec = protos
+    if proto.is_raw() {
+        process_pbf_(proto.as_raw_slice().unwrap())
+    } else if proto.is_list() {
+        let res_vec = proto.as_list()
+        .unwrap()
         .into_iter()
-        .map(|(_, pi)| {
-            let ri = pi.as_raw().unwrap();
-            let ci = ri.as_slice().to_vec();
-            ci
+        .map(|(_, bi)| {
+            let bits = bi.as_raw_slice().unwrap();
+            process_pbf_(bits)
         })
-        .collect::<Vec<_>>();
+        .collect::<Vec<Robj>>();
 
-    let res_vec = bit_vec
-        .into_par_iter()
-        .map(|bi| {
-            let pnt = unsafe { process_pbf(&bi).get() };
-
-        })
-        .collect::<Vec<_>>();
-
-    List::from_values(res_vec)
+        List::from_values(res_vec).into()
+    } else {
+        ().into()
+    }
+    
 }
 
 #[extendr]
@@ -84,4 +82,5 @@ extendr_module! {
     mod arcpbf;
     fn read_pbf;
     fn open_pbf;
+    fn process_pbf;
 }

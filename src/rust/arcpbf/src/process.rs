@@ -103,6 +103,7 @@ pub fn process_layer(fr: FeatureResult) -> Robj {
     res.into_robj()
 }
 
+
 pub fn process_feature_result(fr: FeatureResult) -> Robj {
     // for now we will return NULL if z or m dimensions are present
     if fr.has_m || fr.has_z {

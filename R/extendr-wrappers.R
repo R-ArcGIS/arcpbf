@@ -11,15 +11,11 @@
 #' @useDynLib arcpbf, .registration = TRUE
 NULL
 
-#' Return string `"Hello world!"` to R.
-#' @export
-hello_world <- function() .Call(wrap__hello_world)
-
 read_pbf <- function(path) .Call(wrap__read_pbf, path)
 
 open_pbf <- function(path) .Call(wrap__open_pbf, path)
 
-parse_pbf <- function(bin) .Call(wrap__parse_pbf, bin)
+process_pbf <- function(protos) .Call(wrap__process_pbf, protos)
 
 
 # nolint end
