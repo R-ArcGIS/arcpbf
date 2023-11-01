@@ -79,13 +79,30 @@ fn read_pbf(path: &str) -> Robj {
 }
 
 #[extendr]
+/// Process a list of httr2 responses
+/// 
+/// 
 /// @export
 fn multi_resp_process(resps: List) -> List {
     let res_vec = resps 
         .into_iter()
         .map(|(_, ri)| {
+
+            if !ri.inherits("httr2_response") {
+                return ().into_robj()
+            } 
+
             let ri = ri.as_list()
                 .unwrap();
+
+            let status = ri.dollar("status_code")
+                .unwrap()
+                .as_integer()
+                .unwrap();
+
+            if status != 200 {
+                return ().into_robj()
+            }
 
             let binding = ri.dollar("body")
                 .unwrap();

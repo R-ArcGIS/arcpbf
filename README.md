@@ -10,9 +10,13 @@ written in Rust and powered by the
 arcpbf has functions for reading protocol buffer (pbf) results from an
 ArcGIS REST API result. pbf results are returned when `f=pbf` in a
 [query](https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm).
-
 The package is intended to be extremely lightweight and fast. As such,
 it has no hard dependencies.
+
+> ***Important***: Rust must be installed to compile the package. Run
+> the one line installation instructions at <https://rustup.rs/>. To
+> verify your Rust installation is compatible, run
+> `rextendr::rust_sitrep()`. That’s it.
 
 ## TL;DR
 
@@ -24,6 +28,10 @@ it has no hard dependencies.
   of `process_pbf()`
   - set `use_sf = FALSE` to return a `data.frame` otherwise an `sf`
     object will be returned
+- `multi_resp_process()` processes a list of `httr2_response` using
+  `process_pbf()`
+  - note that it requires each element to be a successful 200 status
+    request
 
 ## Basic usage
 
@@ -186,7 +194,11 @@ str(res, 1)
 #>  $ sr        :List of 5
 ```
 
-Processing a response from a REST request:
+## Processing requests
+
+The true purpose of this package is to process requests from the REST
+API. Here we process a single request using
+[`{httr2}`](https://httr2.r-lib.org/)
 
 ``` r
 
@@ -196,15 +208,39 @@ resp <- httr2::request(url) |>
   httr2::req_perform() |> 
   httr2::resp_body_raw()
 
-
 x <- process_pbf(resp)
-post_process_pbf(x)
-#> Simple feature collection with 2000 features and 67 fields
+```
+
+In developing an R package, one may be creating multiple requests in
+parallel using `httr2::multi_req_perform()` as is done in
+[`{arcgislayers}`](https://github.com/R-ArcGIS/arcgislayers).
+
+``` r
+reqs <- replicate(5, httr2::request(url), simplify = FALSE)
+
+resps <- httr2::multi_req_perform(reqs)
+```
+
+We can process all of the responses using `multi_resp_process()` and
+pass the results to `post_process_pbf()`.
+
+Note that when post processing a list of responses,
+`data.table::rbindlist()` will be used to bind the results together. If
+data.table is not available, `dplyr::bind_rows()` will be used. If dplyr
+is not available, rows will be bound together using
+`do.call(rbind.data.frame, x)`.
+
+``` r
+res <- multi_resp_process(resps) |> 
+  post_process_pbf()
+#> Loading required namespace: data.table
+
+head(res)
+#> Simple feature collection with 6 features and 67 fields
 #> Geometry type: POLYGON
 #> Dimension:     XY
-#> Bounding box:  xmin: NA ymin: NA xmax: NA ymax: NA
+#> Bounding box:  xmin: -17298700 ymin: 2216212 xmax: -17253470 ymax: 2261306
 #> Projected CRS: WGS 84 / Pseudo-Mercator
-#> First 10 features:
 #>   OBJECTID       GEOID     ALAND   AWATER             NAME  State        County
 #> 1        1 15001020100 251395866 10656236 Census Tract 201 Hawaii Hawaii County
 #>   B03002_001E B03002_001M B03002_003E B03002_003M B03002_004E B03002_004M
@@ -235,7 +271,7 @@ post_process_pbf(x)
 #> 1          19          21         327         139
 #>                         geometry
 #> 1 POLYGON ((-17264972 2244291...
-#>  [ reached 'max' / getOption("max.print") -- omitted 9 rows ]
+#>  [ reached 'max' / getOption("max.print") -- omitted 5 rows ]
 ```
 
 ## Internals

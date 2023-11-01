@@ -22,9 +22,12 @@ in Rust and powered by the [extendr](https://github.com/extendr/extendr) library
 
 arcpbf has functions for reading protocol buffer (pbf) results from an ArcGIS 
 REST API result. pbf results are returned when `f=pbf` in a [query](https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm). 
-
 The package is intended to be extremely lightweight and fast. As such, it has no 
 hard dependencies. 
+
+> ***Important***: Rust must be installed to compile the package. Run the one line 
+installation instructions at https://rustup.rs/. To verify your Rust installation
+is compatible, run `rextendr::rust_sitrep()`. That's it. 
 
 ## TL;DR 
 
@@ -33,6 +36,8 @@ hard dependencies.
 - `process_pbf()` will process a raw vector or a list of raw vectors
 - `post_process_pbf()` will apply post processing steps to the results of `process_pbf()`
   - set `use_sf = FALSE` to return a `data.frame` otherwise an `sf` object will be returned
+- `multi_resp_process()` processes a list of `httr2_response` using `process_pbf()`
+  - if an element is not a response or have a 200 status code, `NULL` is returned
 
 ## Basic usage 
 
@@ -113,11 +118,23 @@ x <- process_pbf(resp)
 
 In developing an R package, one may be creating multiple requests in parallel using `httr2::multi_req_perform()` as is done in [`{arcgislayers}`](https://github.com/R-ArcGIS/arcgislayers).
 
-
 ```{r}
 reqs <- replicate(5, httr2::request(url), simplify = FALSE)
 
 resps <- httr2::multi_req_perform(reqs)
+```
+
+We can process all of the responses using `multi_resp_process()` and pass the results to `post_process_pbf()`.
+
+Note that when post processing a list of responses, `data.table::rbindlist()` will be used to bind
+the results together. If data.table is not available, `dplyr::bind_rows()` will be used. If dplyr
+is not available, rows will be bound together using `do.call(rbind.data.frame, x)`. 
+
+```{r}
+res <- multi_resp_process(resps) |> 
+  post_process_pbf()
+
+head(res)
 ```
 
 ## Internals 
