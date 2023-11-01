@@ -11,15 +11,38 @@
 #' @useDynLib arcpbf, .registration = TRUE
 NULL
 
+#' 
 #' @export
 read_pbf <- function(path) .Call(wrap__read_pbf, path)
 
+#' Read a pbf file as a raw vector
+#' 
+#' @param path the path to the `.pbf` file.
+#' 
+#' @returns a raw vector
 #' @export
 open_pbf <- function(path) .Call(wrap__open_pbf, path)
 
+#' Process a FeatureCollection PBF
+#' 
+#' Process a pbf from a raw vector or a list of raw vectors. 
+#' 
+#' @param proto either a raw vector or a list of raw vectors. 
+#' 
+#' @returns 
+#' `NULL` if the object is not a raw vector or a list of them.
+#' If `proto` is a raw vector and the FeatureCollection pbf has a 
+#' geometry, then a name list with three elements `attributes`, 
+#' `sr`, and `geometry` is returned. If there is no geometry,
+#' then a `data.frame` is returned. If FeatureCollection is a 
+#' `CountResult` then a scalar integer is returned.  
 #' @export
 process_pbf <- function(proto) .Call(wrap__process_pbf, proto)
 
+#' Process a list of httr2 responses
+#' 
+#' @param resps a list of `httr2_response` objects such as 
+#'   created by `httr2::multi_req_perform()`
 #' @export
 multi_resp_process <- function(resps) .Call(wrap__multi_resp_process, resps)
 
