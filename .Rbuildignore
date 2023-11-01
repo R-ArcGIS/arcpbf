@@ -8,3 +8,5 @@
 ^inst/json$
 ^inst/json/*
 ^inst/pbfs/*
+^src/rust/vendor/*$
+^src/vendor/*$

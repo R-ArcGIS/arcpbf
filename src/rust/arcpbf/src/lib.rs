@@ -18,6 +18,11 @@ use std::io::Cursor;
 use prost::Message;
 
 #[extendr]
+/// Read a pbf file as a raw vector
+/// 
+/// @param path the path to the `.pbf` file.
+/// 
+/// @returns a raw vector
 /// @export
 fn open_pbf(path: &str) -> Raw {
     let ff = std::fs::read(path).unwrap();
@@ -38,6 +43,19 @@ fn process_pbf_(proto: &[u8]) -> Robj {
 }
 
 #[extendr]
+/// Process a FeatureCollection PBF
+/// 
+/// Process a pbf from a raw vector or a list of raw vectors. 
+/// 
+/// @param proto either a raw vector or a list of raw vectors. 
+/// 
+/// @returns 
+/// `NULL` if the object is not a raw vector or a list of them.
+/// If `proto` is a raw vector and the FeatureCollection pbf has a 
+/// geometry, then a name list with three elements `attributes`, 
+/// `sr`, and `geometry` is returned. If there is no geometry,
+/// then a `data.frame` is returned. If FeatureCollection is a 
+/// `CountResult` then a scalar integer is returned.  
 /// @export
 fn process_pbf(proto: Robj) -> Robj {
 
@@ -61,6 +79,7 @@ fn process_pbf(proto: Robj) -> Robj {
 }
 
 #[extendr]
+/// 
 /// @export
 fn read_pbf(path: &str) -> Robj {
     let ff = std::fs::read(path).unwrap();
@@ -81,7 +100,8 @@ fn read_pbf(path: &str) -> Robj {
 #[extendr]
 /// Process a list of httr2 responses
 /// 
-/// 
+/// @param resps a list of `httr2_response` objects such as 
+///   created by `httr2::multi_req_perform()`
 /// @export
 fn multi_resp_process(resps: List) -> List {
     let res_vec = resps 

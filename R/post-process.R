@@ -57,3 +57,9 @@ post_process_list <- function(x, use_sf) {
     x
   }
 }
+
+crs <- function(sr) {
+  possible_crs <- sr[c("latest_wkid", "wkid", "wkt")]
+  valid_crs_idx <- which(!is.na(possible_crs))[1]
+  possible_crs[[valid_crs_idx]]
+}
