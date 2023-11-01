@@ -16,3 +16,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Config/rextendr/version: 0.3.1.9000
 SystemRequirements: Cargo (rustc package manager)
+Suggests: 
+    data.table,
+    dplyr,
+    sf

@@ -11,6 +11,8 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-",
   out.width = "100%"
 )
+
+options(max.print = 100)
 ```
 
 # arcpbf
@@ -21,21 +23,76 @@ in Rust and powered by the [extendr](https://github.com/extendr/extendr) library
 arcpbf has functions for reading protocol buffer (pbf) results from an ArcGIS 
 REST API result. pbf results are returned when `f=pbf` in a [query](https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm). 
 
+The package is intended to be extremely lightweight and fast. As such, it has no 
+hard dependencies. 
+
+## TL;DR 
+
 - `open_pbf()` will read a FeatureCollection `pbf` file into a raw vector
 - `read_pbf()` will read a FeatureCollection `pbf` file _and_ process it
 - `process_pbf()` will process a raw vector or a list of raw vectors
+- `post_process_pbf()` will apply post processing steps to the results of `process_pbf()`
+  - set `use_sf = FALSE` to return a `data.frame` otherwise an `sf` object will be returned
+
+## Basic usage 
+
+There are two ways of processing a FeatureCollection pbf. We either can read
+directly from a binary file (typically with a `.pbf` extension). Or, we process
+the a raw vector containing the binary of a pbf as returned by an http request. 
+These are accomplished with `read_pbf()` and `process_pbf()` respectively. 
+
+Here we read a single pbf file. 
 
 ```{r}
 library(arcpbf)
 
-tmp <- tempfile()
+x <- read_pbf("inst/pbfs/pnts.pbf")
+str(x, 1)
+```
 
-download.file(
-  "https://raw.githubusercontent.com/JosiahParry/arcpbf/main/inst/pbfs/count.pbf",
-  tmp
-)
+For pbf files containing geometries, we retrieve a list of 3 elements:
 
-read_pbf(tmp)
+- `attributes` is a `data.frame` of the fields of the FeatureCollection
+- `geometry` is a pseudo-sfc object (more on this later) which is a list of sfg geometry objects
+- `sr` is a named list of the spatial reference of the feature collection
+
+Whereas FeatureCollections _without geometries_ will always return a single data.frame.
+
+```{r}
+read_pbf("inst/pbfs/small-table.pbf")
+```
+
+These results use no external dependencies. If we want to convert the named list into a familiar sf object
+we will have to **post-process** it using `post_process_pbf()`. The `use_sf` argument, which defaults 
+to `TRUE`, will use the `sf` package to return an `sf` object. 
+
+```{r}
+post_process_pbf(x)
+```
+
+If it is set to `FALSE`, it will return a `data.frame`.
+
+```{r}
+post_process_pbf(x, use_sf = FALSE)
+```
+
+
+## Reading from a raw vector
+
+The `open_pbf()` function will read a pbf file into a raw vector which can be 
+passed to `process_pbf()`. In general you will not need this function, but it 
+is handy for the sake of example. 
+
+```{r}
+pbf_raw <- open_pbf("inst/pbfs/big-pnts.pbf")
+head(pbf_raw, 20)
+```
+
+This raw vector can be turned into an R object using `process_pbf()`.
+
+```{r}
+res <- process_pbf(pbf_raw)
+str(res, 1)
 ```
 
 
@@ -51,7 +108,7 @@ resp <- httr2::request(url) |>
 
 
 x <- process_pbf(resp)
-head(x$attributes)
+post_process_pbf(x)
 ```
 
 

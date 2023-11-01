@@ -6,6 +6,8 @@ pub use point::*;
 
 use esripbf::esri_p_buffer::feature_collection_p_buffer::{Scale, Translate};
 
+// TODO how do we handle empty geometries? 
+
 // Delta decodes an integer vector mutably
 // Return a vector of length 2 arrays
 fn delta_decode(x: &mut [i64], trans: &Translate, scale: &Scale) -> Vec<[f64; 2]> {
@@ -27,3 +29,5 @@ fn delta_decode(x: &mut [i64], trans: &Translate, scale: &Scale) -> Vec<[f64; 2]
 
     res
 }
+
+

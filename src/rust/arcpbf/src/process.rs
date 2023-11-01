@@ -26,6 +26,14 @@ pub fn process_layer(fr: FeatureResult) -> Robj {
         GeometryType::EsriGeometryTypeNone => todo!(),
     };
 
+    let sfc_class = match fr.geometry_type() {
+        GeometryType::EsriGeometryTypePoint => ["sfc_POINT", "sfc"],
+        GeometryType::EsriGeometryTypeMultipoint => ["sfc_MULTIPOINT", "sfc"],
+        GeometryType::EsriGeometryTypePolyline => ["sfc_MULTILINESTRING", "sfc"],
+        GeometryType::EsriGeometryTypePolygon => ["sfc_POLYGON", "sfc"],
+        _ => unreachable!()
+    };
+
     // extract the spatial reference
     // it needs to be returned as a list object for construction
     // in sfc object
@@ -70,6 +78,34 @@ pub fn process_layer(fr: FeatureResult) -> Robj {
             geom_processor(xi.compressed_geometry, &trans, &scale).into_robj()
         })
         .collect::<Vec<Robj>>();
+
+    // we create an empty bounding box to assign to the sfc class object
+    // after processing, we will calculate the bbox
+    let empty_bbox = Doubles::from_values([Rfloat::na(), Rfloat::na(), Rfloat::na(), Rfloat::na()])
+        .into_robj()
+        .set_names(&["xmin", "ymin", "xmax", "ymax"])
+        .unwrap();
+    
+    // recreate the NA CRS. This will be populated later 
+    let na_crs = list!(
+        input = Strings::from(Rstr::na()),
+        wkt = Strings::from(Rstr::na())
+    ).set_class(["crs"])
+    .unwrap();
+
+    let geoms = geoms
+        .into_robj()
+        .set_class(sfc_class)
+        .unwrap()
+        .set_attrib("precision", 0f64)
+        .unwrap()
+        .set_attrib("n_empty", 0i32)
+        .unwrap()
+        .set_attrib("bbox", empty_bbox)
+        .unwrap()
+        .set_attrib("crs", na_crs)
+        .unwrap();
+    
 
     // iterate over the
     let res_vecs = attr_vecs
