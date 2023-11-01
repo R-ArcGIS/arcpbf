@@ -20,5 +20,8 @@ open_pbf <- function(path) .Call(wrap__open_pbf, path)
 #' @export
 process_pbf <- function(proto) .Call(wrap__process_pbf, proto)
 
+#' @export
+multi_resp_process <- function(resps) .Call(wrap__multi_resp_process, resps)
+
 
 # nolint end

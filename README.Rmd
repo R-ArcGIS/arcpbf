@@ -95,8 +95,10 @@ res <- process_pbf(pbf_raw)
 str(res, 1)
 ```
 
+## Processing requests 
 
-Processing a response from a REST request: 
+The true purpose of this package is to process requests from the REST API. Here
+we process a single request using [`{httr2}`](https://httr2.r-lib.org/)
 
 ```{r}
 
@@ -106,11 +108,17 @@ resp <- httr2::request(url) |>
   httr2::req_perform() |> 
   httr2::resp_body_raw()
 
-
 x <- process_pbf(resp)
-post_process_pbf(x)
 ```
 
+In developing an R package, one may be creating multiple requests in parallel using `httr2::multi_req_perform()` as is done in [`{arcgislayers}`](https://github.com/R-ArcGIS/arcgislayers).
+
+
+```{r}
+reqs <- replicate(5, httr2::request(url), simplify = FALSE)
+
+resps <- httr2::multi_req_perform(reqs)
+```
 
 ## Internals 
 

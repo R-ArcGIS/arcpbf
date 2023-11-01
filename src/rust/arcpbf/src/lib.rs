@@ -78,6 +78,81 @@ fn read_pbf(path: &str) -> Robj {
    
 }
 
+#[extendr]
+/// @export
+fn multi_resp_process(resps: List) -> List {
+    let res_vec = resps 
+        .into_iter()
+        .map(|(_, ri)| {
+            let ri = ri.as_list()
+                .unwrap();
+
+            let binding = ri.dollar("body")
+                .unwrap();
+
+            let body = binding
+                .as_raw_slice()
+                .unwrap();
+
+            process_pbf_(body)
+
+        })
+        .collect::<Vec<_>>();
+
+    List::from_values(res_vec)
+}
+
+// This code illustrates how we can use rayon for this
+// Its about a 2x speed up but for now we're not going
+// down that path   
+// #[derive(Debug)]
+// struct SendRobj(Robj);
+
+// unsafe impl Send for SendRobj {}
+
+// impl From<Robj> for SendRobj {
+//     fn from(value: Robj) -> Self {
+//         Self(value)
+//     }
+// }
+
+// impl extendr_api::ToVectorValue for SendRobj {}
+
+// use rayon::prelude::*;
+// #[extendr]
+// /// @export
+// fn multi_resp_process_rayon(resps: List) -> List {
+//     let bit_vec = resps 
+//         .into_iter()
+//         .map(|(_, ri)| {
+//             let ri = ri.as_list()
+//                 .unwrap();
+
+//             let binding = ri.dollar("body")
+//                 .unwrap();
+
+//             let body = binding
+//                 .as_raw_slice()
+//                 .unwrap();
+
+//             body.to_vec()
+
+//         })
+//         .collect::<Vec<_>>();
+
+//     let res_vec = bit_vec
+//         .into_par_iter()
+//         .map(|xi| {
+//             process_pbf_(xi.as_slice()).into()
+//         })
+//         .collect::<Vec<SendRobj>>();
+
+//     let res = res_vec.into_iter().map(|i| i.0).collect::<Vec<_>>();
+
+//     List::from_values(res)
+
+// }
+
 // Macro to generate exports.
 // This ensures exported functions are registered with R.
 // See corresponding C code in `entrypoint.c`.
@@ -86,4 +161,6 @@ extendr_module! {
     fn read_pbf;
     fn open_pbf;
     fn process_pbf;
+    fn multi_resp_process;
+    // fn multi_resp_process_rayon;
 }
