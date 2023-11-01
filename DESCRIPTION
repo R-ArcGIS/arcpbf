@@ -1,11 +1,15 @@
 Package: arcpbf
-Title: What the Package Does (One Line, Title Case)
+Title: Process ArcGIS Protocol Buffer FeatureCollections
 Version: 0.0.0.9000
 Authors@R: 
     person("Josiah", "Parry", , "josiah.parry@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-9910-865X"))
-Description: What the package does (one paragraph).
-License: MIT + file LICENSE
+Description: The ArcGIS Protocol Buffer FeatureCollection specification encodes 
+  geographic and attribute data using Google's protocol buffer (pbf) specification. 
+  Modern ArcGIS REST endpoints can return pbfs which are smaller, and faster to 
+  consume. arcpbf processes FeatureCollection pbfs and returns the results as data
+  frames and simple feature collections. 
+License: Apache License (>= 2)
 Encoding: UTF-8
 Language: en
 Roxygen: list(markdown = TRUE)

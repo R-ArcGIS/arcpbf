@@ -18,6 +18,7 @@ use std::io::Cursor;
 use prost::Message;
 
 #[extendr]
+/// @export
 fn open_pbf(path: &str) -> Raw {
     let ff = std::fs::read(path).unwrap();
     let crs = Cursor::new(ff);
@@ -37,6 +38,7 @@ fn process_pbf_(proto: &[u8]) -> Robj {
 }
 
 #[extendr]
+/// @export
 fn process_pbf(proto: Robj) -> Robj {
 
     if proto.is_raw() {
@@ -59,6 +61,7 @@ fn process_pbf(proto: Robj) -> Robj {
 }
 
 #[extendr]
+/// @export
 fn read_pbf(path: &str) -> Robj {
     let ff = std::fs::read(path).unwrap();
     let crs = Cursor::new(ff);
