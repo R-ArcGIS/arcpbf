@@ -21,7 +21,7 @@ post_process_pbf <- function(x, use_sf = TRUE) {
 
 post_process_single <- function(x, use_sf) {
   if (use_sf) {
-    if (!requireNamespace("sf")) {
+    if (!requireNamespace("sf", quietly = TRUE)) {
       stop("`sf` is required to post-process as sf obejcts")
     }
     sf_crs <- crs(x[["sr"]])
@@ -43,9 +43,15 @@ post_process_list <- function(x, use_sf) {
     x[[i]] <- post_process_single(x[[i]], use_sf)
   }
 
-  if (requireNamespace("data.table")) {
+  if (requireNamespace(
+    "collapse",
+    versionCheck = list(op = ">=", version = "2.0.0"),
+    quietly = TRUE
+  )) {
+    x <- collapse::rowbind(x)
+  } else if (requireNamespace("data.table", quietly = TRUE)) {
     x <- as.data.frame(data.table::rbindlist(x))
-  } else if (requireNamespace("dplyr")) {
+  } else if (requireNamespace("dplyr", quietly = TRUE)) {
     x <- dplyr::bind_rows(x)
   } else {
     x <- do.call(rbind.data.frame, x)

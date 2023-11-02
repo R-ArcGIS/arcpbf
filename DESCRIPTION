@@ -6,9 +6,9 @@ Authors@R:
            comment = c(ORCID = "0000-0001-9910-865X"))
 Description: The ArcGIS Protocol Buffer FeatureCollection specification encodes 
   geographic and attribute data using Google's protocol buffer (pbf) specification. 
-  Modern ArcGIS REST endpoints can return pbfs which are smaller, and faster to 
-  consume. arcpbf processes FeatureCollection pbfs and returns the results as data
-  frames and simple feature collections. 
+  Modern ArcGIS REST endpoints can return pbfs which are smaller and faster to 
+  consume. arcpbf processes FeatureCollection pbfs and returns the results as R
+  objects including data.frames and simple feature collections. 
 License: Apache License (>= 2)
 Encoding: UTF-8
 Language: en
@@ -17,6 +17,7 @@ RoxygenNote: 7.2.3
 Config/rextendr/version: 0.3.1.9000
 SystemRequirements: Cargo (Rust's package manager), rustc
 Suggests: 
+    collapse (>= 2.0.0),
     data.table,
     dplyr,
     sf
