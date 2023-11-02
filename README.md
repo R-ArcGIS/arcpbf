@@ -171,6 +171,35 @@ post_process_pbf(x, use_sf = FALSE)
 #>  [ reached 'max' / getOption("max.print") -- omitted 5 rows ]
 ```
 
+## Types of FeatureCollection results
+
+The FeatureCollection pbf can return three different types of results.
+They can be query results as above, or they can also be **count** or
+**Object ID** results.
+
+Counts will always return a scalar integer vector.
+
+``` r
+read_pbf("inst/pbfs/count.pbf")
+#> [1] 3143
+```
+
+Whereas the Object ID result type will return a `data.frame` with a
+single column. The column name is the name of the object ID field and
+the values are the object IDs as a numeric vector.
+
+``` r
+ids <- read_pbf("inst/pbfs/ids.pbf")
+head(ids)
+#>   OBJECTID
+#> 1       93
+#> 2       73
+#> 3       83
+#> 4       86
+#> 5     2671
+#> 6     3140
+```
+
 ## Reading from a raw vector
 
 The `open_pbf()` function will read a pbf file into a raw vector which
@@ -201,7 +230,6 @@ API. Here we process a single request using
 [`{httr2}`](https://httr2.r-lib.org/)
 
 ``` r
-
 url <- "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=*&f=pbf&token="
 
 resp <- httr2::request(url) |> 
@@ -288,11 +316,11 @@ jsn <- function() {
   )
   reqs <- lapply(json_reqs, httr2::request) 
   
-  httr2::multi_req_perform(reqs) |> 
-    lapply(function(x) arcgisutils::parse_esri_json(httr2::resp_body_string(x))) |> 
-    data.table::rbindlist() |> 
-    sf::st_as_sf()
+  resps <- httr2::multi_req_perform(reqs) |> 
+    lapply(function(x) arcgisutils::parse_esri_json(httr2::resp_body_string(x))) 
   
+  do.call(rbind.data.frame, resps) |> 
+    sf::st_as_sf()
 }
 
 # protobuff processing 
@@ -322,8 +350,8 @@ bench::mark(
 #> # A tibble: 2 × 6
 #>   expression   min median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <dbl>  <dbl>     <dbl>     <dbl>    <dbl>
-#> 1 jsn()       3.62   3.48      1         2.67     4.81
-#> 2 pbf()       1      1         3.12      1        1
+#> 1 jsn()       4.46   4.39      1         2.81     3.94
+#> 2 pbf()       1      1         4.06      1        1
 ```
 
 ## Internals
