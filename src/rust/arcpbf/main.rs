@@ -131,16 +131,6 @@ fn field_type_robj_mapper(fi: &FieldType) -> fn(Vec<Value>) -> Robj {
 }
 
 
-
-
-fn esri_date_to_posixct(x: Rfloat) -> Robj {
-    let res = (x / 1000f64);
-    res
-        .into_robj()
-        .set_class(["POSIXct","POSIXt"])
-        .unwrap()
-}
-
 use esri_p_buffer::feature_collection_p_buffer::{Scale, Translate};
 
 // Transforms a full vector of coordinates

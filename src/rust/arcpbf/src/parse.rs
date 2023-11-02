@@ -1,6 +1,7 @@
 use esripbf::esri_p_buffer::feature_collection_p_buffer::value::ValueType;
 use esripbf::feature_collection_p_buffer::{FieldType, Value, SpatialReference};
 use extendr_api::prelude::*;
+
 // Functions to parse each field type
 pub fn parse_small_ints(x: Vec<Value>) -> Integers {
     x.into_iter()
@@ -54,6 +55,22 @@ pub fn parse_strings(x: Vec<Value>) -> Strings {
         .collect::<Strings>()
 }
 
+pub fn parse_date(x: Vec<Value>) -> Robj {
+    x.into_iter()
+        .map(|xi| match xi.value_type {
+            Some(x) => match x {
+                ValueType::Sint64Value(i) => Rfloat::from((i / 1000_i64) as f64),
+                _ => unreachable!(),
+            },
+            None => Rfloat::na(),
+        })
+        .collect::<Doubles>()
+        .into_robj()
+        .set_class(["POSIXct","POSIXt"])
+        .unwrap()
+}
+
+
 pub fn parse_spatial_ref(x: SpatialReference) -> List {
     let wkt = if x.wkt.len() == 0 { Strings::from(Rstr::na()) } else { Strings::from(Rstr::from(x.wkt)) };
     let wkid = if x.wkid == 0 { Rint::na() } else { Rint::from(x.wkid as i32) };
@@ -70,6 +87,9 @@ pub fn parse_spatial_ref(x: SpatialReference) -> List {
     )
 }
 
+
+
+
 // map field type to parser
 pub fn field_type_robj_mapper(fi: &FieldType) -> fn(Vec<Value>) -> Robj {
     match fi {
@@ -80,7 +100,7 @@ pub fn field_type_robj_mapper(fi: &FieldType) -> fn(Vec<Value>) -> Robj {
         FieldType::EsriFieldTypeString => |x| parse_strings(x).into_robj(),
         FieldType::EsriFieldTypeGuid => |x| parse_strings(x).into_robj(),
         FieldType::EsriFieldTypeOid => |x| parse_big_ints(x).into_robj(),
-        FieldType::EsriFieldTypeDate => |x| parse_big_ints(x).into_robj(),
+        FieldType::EsriFieldTypeDate => |x| parse_date(x),
         // FieldType::EsriFieldTypeXml => todo!(),
         FieldType::EsriFieldTypeGlobalId => |x| parse_strings(x).into_robj(),
         // FieldType::EsriFieldTypeRaster => todo!(),
