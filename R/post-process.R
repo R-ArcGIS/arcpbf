@@ -50,7 +50,8 @@ post_process_list <- function(x, use_sf) {
   )) {
     x <- collapse::rowbind(x)
   } else if (requireNamespace("data.table", quietly = TRUE)) {
-    x <- as.data.frame(data.table::rbindlist(x))
+    x <- data.table::rbindlist(x)
+    data.table::setDF(x)
   } else if (requireNamespace("dplyr", quietly = TRUE)) {
     x <- dplyr::bind_rows(x)
   } else {
