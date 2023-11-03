@@ -2,7 +2,9 @@
 output: github_document
 ---
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/JosiahParry/arcpbf/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/JosiahParry/arcpbf/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -36,8 +38,10 @@ is compatible, run `rextendr::rust_sitrep()`. That's it.
 - `process_pbf()` will process a raw vector or a list of raw vectors
 - `post_process_pbf()` will apply post processing steps to the results of `process_pbf()`
   - set `use_sf = FALSE` to return a `data.frame` otherwise an `sf` object will be returned
+- `resp_body_pbf()` process an `httr2_response` as a pbf
 - `multi_resp_process()` processes a list of `httr2_response` using `process_pbf()`
   - if an element is not a response or have a 200 status code, `NULL` is returned
+
 
 ## Basic usage 
 
@@ -126,7 +130,7 @@ The true purpose of this package is to process requests from the REST API. Here
 we process a single request using [`{httr2}`](https://httr2.r-lib.org/)
 
 ```{r}
-url <- "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=*&f=pbf&token="
+url <- "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=objectid&f=pbf&token="
 
 resp <- httr2::request(url) |> 
   httr2::req_perform() |> 

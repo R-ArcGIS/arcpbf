@@ -1,5 +1,8 @@
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
+<!-- badges: start -->
+
+[![R-CMD-check](https://github.com/JosiahParry/arcpbf/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/JosiahParry/arcpbf/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
 
 # arcpbf
 
@@ -28,6 +31,7 @@ it has no hard dependencies.
   of `process_pbf()`
   - set `use_sf = FALSE` to return a `data.frame` otherwise an `sf`
     object will be returned
+- `resp_body_pbf()` process an `httr2_response` as a pbf
 - `multi_resp_process()` processes a list of `httr2_response` using
   `process_pbf()`
   - if an element is not a response or have a 200 status code, `NULL` is
@@ -95,7 +99,6 @@ using `post_process_pbf()`. The `use_sf` argument, which defaults to
 
 ``` r
 post_process_pbf(x)
-#> Loading required namespace: sf
 #> Simple feature collection with 10 features and 18 fields
 #> Geometry type: POINT
 #> Dimension:     XY
@@ -230,7 +233,7 @@ API. Here we process a single request using
 [`{httr2}`](https://httr2.r-lib.org/)
 
 ``` r
-url <- "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=*&f=pbf&token="
+url <- "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=objectid&f=pbf&token="
 
 resp <- httr2::request(url) |> 
   httr2::req_perform() |> 
@@ -261,45 +264,20 @@ is not available, rows will be bound together using
 ``` r
 res <- multi_resp_process(resps) |> 
   post_process_pbf()
-#> Loading required namespace: data.table
 
 head(res)
-#> Simple feature collection with 6 features and 67 fields
+#> Simple feature collection with 6 features and 1 field
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: -17298700 ymin: 2216212 xmax: -17253470 ymax: 2261306
 #> Projected CRS: WGS 84 / Pseudo-Mercator
-#>   OBJECTID       GEOID     ALAND   AWATER             NAME  State        County
-#> 1        1 15001020100 251395866 10656236 Census Tract 201 Hawaii Hawaii County
-#>   B03002_001E B03002_001M B03002_003E B03002_003M B03002_004E B03002_004M
-#> 1        4361         515        1029         185           1           3
-#>   B03002_005E B03002_005M B03002_006E B03002_006M B03002_007E B03002_007M
-#> 1           0          12        1240         238         520         221
-#>   B03002_008E B03002_008M B03002_009E B03002_009M B03002_012E B03002_012M
-#> 1           1           3        1033         282         537         184
-#>   B03002_calc_pctNHWhiteE B03002_calc_pctNHWhiteM B03002_calc_pctBlackE
-#> 1                    23.6                3.198676                     0
-#>   B03002_calc_pctBlackM B03002_calc_pctAIANE B03002_calc_pctAIANM
-#> 1            0.06873824                    0            0.2751662
-#>   B03002_calc_pctAsianE B03002_calc_pctAsianM B03002_calc_pctNHOPIE
-#> 1                  28.4              4.302208                  11.9
-#>   B03002_calc_pctNHOPIM B03002_calc_pctOtherE B03002_calc_pctOtherM
-#> 1              4.868083                     0            0.06873824
-#>   B03002_calc_pct2OrMoreE B03002_calc_pct2OrMoreM B03002_calc_pctHispLatE
-#> 1                    23.7                5.830065                    12.3
-#>   B03002_calc_pctHispLatM Shape__Area Shape__Length B03002_002E B03002_002M
-#> 1                3.960711   285584179      92147.93        3824         468
-#>   B03002_010E B03002_010M B03002_011E B03002_011M B03002_013E B03002_013M
-#> 1           0          12        1033         282          30          20
-#>   B03002_014E B03002_014M B03002_015E B03002_015M B03002_016E B03002_016M
-#> 1           0          12          15          20           2           4
-#>   B03002_017E B03002_017M B03002_018E B03002_018M B03002_019E B03002_019M
-#> 1          15          20         129         118         346         143
-#>   B03002_020E B03002_020M B03002_021E B03002_021M
-#> 1          19          21         327         139
-#>                         geometry
-#> 1 POLYGON ((-17264972 2244291...
-#>  [ reached 'max' / getOption("max.print") -- omitted 5 rows ]
+#>   OBJECTID                       geometry
+#> 1        1 POLYGON ((-17264972 2244291...
+#> 2        2 POLYGON ((-17264972 2244291...
+#> 3        3 POLYGON ((-17264587 2241560...
+#> 4        4 POLYGON ((-17263053 2239296...
+#> 5        5 POLYGON ((-17261894 2236947...
+#> 6        6 POLYGON ((-17262143 2241010...
 ```
 
 ## Benchmarking
@@ -350,8 +328,8 @@ bench::mark(
 #> # A tibble: 2 × 6
 #>   expression   min median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <dbl>  <dbl>     <dbl>     <dbl>    <dbl>
-#> 1 jsn()       4.46   4.39      1         2.81     3.94
-#> 2 pbf()       1      1         4.06      1        1
+#> 1 jsn()       4.25   3.88      1         4.22      Inf
+#> 2 pbf()       1      1         3.84      1         NaN
 ```
 
 ## Internals
