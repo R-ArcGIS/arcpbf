@@ -20,4 +20,7 @@ Suggests:
     collapse (>= 2.0.0),
     data.table,
     dplyr,
+    httr2,
     sf
+Imports: 
+    rlang

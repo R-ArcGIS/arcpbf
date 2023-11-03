@@ -10,13 +10,65 @@ process_pbf(proto)
 \item{proto}{either a raw vector or a list of raw vectors.}
 }
 \value{
-\code{NULL} if the object is not a raw vector or a list of them.
-If \code{proto} is a raw vector and the FeatureCollection pbf has a
-geometry, then a name list with three elements \code{attributes},
-\code{sr}, and \code{geometry} is returned. If there is no geometry,
-then a \code{data.frame} is returned. If FeatureCollection is a
-\code{CountResult} then a scalar integer is returned.
+\itemize{
+\item For count results, a scalar integer.
+\item For object ID results a \code{data.frame} with one column.
+\item For pbfs that contain geometries, a list of 3 elements:
+\itemize{
+\item \code{attributes} is a \code{data.frame} of the fields of the FeatureCollection
+\item \code{geometry} is an sfc object \emph{\strong{without a computed bounding box or coordinate reference system set}}
+\item \code{sr} is a named list of the spatial reference of the feature collection
+}
+}
+
+\strong{Important}: Use \code{\link[=post_process_pbf]{post_process_pbf()}} to convet to an \code{sf} object with a computed bounding box and CRS.
 }
 \description{
 Process a pbf from a raw vector or a list of raw vectors.
+}
+\details{
+There are three types of PBF FeatureCollection responses that may be
+returned.
+\subsection{Feature Result}{
+
+In the case the PBF is a \code{FeatureResult} and \code{use_sf = FALSE}, a \code{data.frame}
+is returned with the spatial reference stored in the \code{crs} attribute.
+Otherwise an \code{sf} object is returned.
+}
+
+\subsection{Count Result}{
+
+The PBF can also return a count result, for example if the \href{https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm}{query parameter}
+\code{returnCountOnly} is set to \code{true}. In this case, a scalar integer vector
+is returned.
+}
+
+\subsection{Object ID Result}{
+
+In the case that the query parameter \code{returnIdsOnly} is \code{true}, a
+\code{data.frame} is returned containing the object IDs and the column name
+set to the object ID field name in the feature service.
+}
+}
+\examples{
+count_fp <- system.file("count.pbf", package = "arcpbf")
+oid_fp <- system.file("ids.pbf", package = "arcpbf")
+tbl_fp <- system.file("small-table.pbf", package = "arcpbf")
+fc_fp <- system.file("small-points.pbf", package = "arcpbf")
+
+# count response
+count_raw <- open_pbf(count_fp)
+process_pbf(count_raw)
+
+# object id response
+oid_raw <- open_pbf(oid_fp)
+head(process_pbf(oid_raw))
+
+# table feature collection
+tbl_raw <- open_pbf(tbl_fp)
+process_pbf(tbl_raw)
+
+# feature collection with geometry 
+fc_raw <- open_pbf(fc_fp)
+process_pbf(fc_raw)
 }

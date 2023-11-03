@@ -24,6 +24,15 @@ use prost::Message;
 /// 
 /// @returns a raw vector
 /// @export
+/// @examples
+/// count_fp <- system.file("count.pbf", package = "arcpbf")
+/// oid_fp <- system.file("ids.pbf", package = "arcpbf")
+/// tbl_fp <- system.file("small-table.pbf", package = "arcpbf")
+/// fc_fp <- system.file("small-points.pbf", package = "arcpbf")
+/// count_raw <- open_pbf(count_fp)
+/// oid_raw <- open_pbf(oid_fp)
+/// tbl_raw <- open_pbf(tbl_fp)
+/// fc_raw <- open_pbf(fc_fp)
 fn open_pbf(path: &str) -> Raw {
     let ff = std::fs::read(path).unwrap();
     let crs = Cursor::new(ff);
@@ -47,16 +56,65 @@ fn process_pbf_(proto: &[u8]) -> Robj {
 /// 
 /// Process a pbf from a raw vector or a list of raw vectors. 
 /// 
-/// @param proto either a raw vector or a list of raw vectors. 
+/// @param proto either a raw vector or a list of raw vectors containing a FeatureCollection pbf
+/// 
+/// @details 
+/// 
+/// There are three types of PBF FeatureCollection responses that may be
+/// returned.
+///
+/// ### Feature Result
+///
+/// In the case the PBF is a `FeatureResult` and `use_sf = FALSE`, a `data.frame`
+/// is returned with the spatial reference stored in the `crs` attribute.
+/// Otherwise an `sf` object is returned.
+///
+/// ### Count Result
+///
+/// The PBF can also return a count result, for example if the [query parameter](https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm)
+/// `returnCountOnly` is set to `true`. In this case, a scalar integer vector
+/// is returned.
+///
+/// ### Object ID Result
+///
+/// In the case that the query parameter `returnIdsOnly` is `true`, a
+/// `data.frame` is returned containing the object IDs and the column name
+/// set to the object ID field name in the feature service.
 /// 
 /// @returns 
-/// `NULL` if the object is not a raw vector or a list of them.
-/// If `proto` is a raw vector and the FeatureCollection pbf has a 
-/// geometry, then a name list with three elements `attributes`, 
-/// `sr`, and `geometry` is returned. If there is no geometry,
-/// then a `data.frame` is returned. If FeatureCollection is a 
-/// `CountResult` then a scalar integer is returned.  
+/// 
+/// - For count results, a scalar integer. 
+/// - For object ID results a `data.frame` with one column.
+/// - For pbfs that contain geometries, a list of 3 elements:
+///     - `attributes` is a `data.frame` of the fields of the FeatureCollection
+///     - `geometry` is an sfc object _**without a computed bounding box or coordinate reference system set**_
+///     - `sr` is a named list of the spatial reference of the feature collection
+/// 
+/// **Important**: Use [`post_process_pbf()`] to convet to an `sf` object with a computed bounding box and CRS.
+/// 
 /// @export
+/// 
+/// @examples
+/// count_fp <- system.file("count.pbf", package = "arcpbf")
+/// oid_fp <- system.file("ids.pbf", package = "arcpbf")
+/// tbl_fp <- system.file("small-table.pbf", package = "arcpbf")
+/// fc_fp <- system.file("small-points.pbf", package = "arcpbf")
+/// 
+/// # count response
+/// count_raw <- open_pbf(count_fp)
+/// process_pbf(count_raw)
+/// 
+/// # object id response
+/// oid_raw <- open_pbf(oid_fp)
+/// head(process_pbf(oid_raw))
+/// 
+/// # table feature collection
+/// tbl_raw <- open_pbf(tbl_fp)
+/// process_pbf(tbl_raw)
+/// 
+/// # feature collection with geometry 
+/// fc_raw <- open_pbf(fc_fp)
+/// process_pbf(fc_raw)
 fn process_pbf(proto: Robj) -> Robj {
 
     if proto.is_raw() {
@@ -79,6 +137,37 @@ fn process_pbf(proto: Robj) -> Robj {
 }
 
 #[extendr]
+/// Read a FeatureCollection Protocol Buffer 
+/// 
+/// Given a binary file containing a FeatureCollection protocol buffer (pbf),
+/// read its contents into R as an R object. 
+/// 
+/// @param path a scalar character of the path to the pbf file
+/// 
+/// @returns 
+/// 
+/// Either a data.frame, list, or scalar integer. 
+/// 
+/// See [`process_pbf()`] for more.
+/// 
+/// @examples 
+///
+/// count_fp <- system.file("count.pbf", package = "arcpbf")
+/// oid_fp <- system.file("ids.pbf", package = "arcpbf")
+/// tbl_fp <- system.file("small-table.pbf", package = "arcpbf")
+/// fc_fp <- system.file("small-points.pbf", package = "arcpbf")
+/// 
+/// # count response
+/// read_pbf(count_fp)
+/// 
+/// # object id response
+/// head(read_pbf(oid_fp))
+/// 
+/// # table feature collection
+/// read_pbf(tbl_fp)
+/// 
+/// # feature collection with geometry 
+/// read_pbf(fc_fp)
 /// 
 /// @export
 fn read_pbf(path: &str) -> Robj {
@@ -100,9 +189,34 @@ fn read_pbf(path: &str) -> Robj {
 #[extendr]
 /// Process a list of httr2 responses
 /// 
+/// When running multiple requests in parallel using [`httr2::multi_req_perform()`]
+/// the responses are returned as a list of responses. `multi_resp_process()` processes
+/// the responses in a vectorized manner.
+/// 
+/// @details
+/// 
+/// If a response is not 200 status code or does not have the appropriate `"application/x-protobuf"`
+/// content type, the result will be `NULL`.
+/// 
+/// The results of this _are not_ post processed. Post processing can be
+/// applied to the resultant list object using `post_process_pbf()`. 
+/// See the example for a fully worked example including post-processing.
+/// 
 /// @param resps a list of `httr2_response` objects such as 
 ///   created by `httr2::multi_req_perform()`
 /// @export
+/// @family httr2
+/// @returns
+/// A list where each element is a processed FeatureCollection PBF.
+/// 
+/// @examples 
+/// if (rlang::is_installed("httr2") && interactive()) {
+///     url <- "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=*&f=pbf&token="
+///     reqs <- replicate(5, httr2::request(url), simplify = FALSE)
+///     resps <- httr2::multi_req_perform(reqs)
+///     pbfs <- multi_resp_process(resps)
+///     post_process_pbf(pbfs)
+/// }
 fn multi_resp_process(resps: List) -> List {
     let res_vec = resps 
         .into_iter()
@@ -121,6 +235,18 @@ fn multi_resp_process(resps: List) -> List {
                 .unwrap();
 
             if status != 200 {
+                return ().into_robj()
+            }
+
+            let content_type = ri
+                .dollar("headers")
+                .unwrap()
+                .dollar("content-type")
+                .unwrap()
+                .as_str()
+                .unwrap();
+
+            if content_type != "application/x-protobuf" {
                 return ().into_robj()
             }
 

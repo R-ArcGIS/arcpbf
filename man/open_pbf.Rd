@@ -15,3 +15,7 @@ a raw vector
 \description{
 Read a pbf file as a raw vector
 }
+\examples{
+count_fp <- system.file("count.pbf", package = "arcpbf")
+open_pbf(count_fp)
+}

@@ -9,13 +9,37 @@ post_process_pbf(x, use_sf = TRUE)
 \arguments{
 \item{x}{an object as returned by \code{process_pbf()} or \code{read_pbf()}}
 
-\item{use_sf}{default \code{TRUE}. Whether or not to return an \code{sf} object.
-If \code{FALSE}, a \code{data.frame} is returned with the spatial reference stored
-in the \code{crs} attribute.}
+\item{use_sf}{default \code{TRUE}. Whether or not to return an \code{sf} object.}
 }
 \value{
 An object of class \code{data.frame} or \code{sf} when \code{use_sf = TRUE}.
+
+An object of class \code{data.frame}, \code{sf}, or a scalar integer vector.
+
+See \code{\link[=process_pbf]{process_pbf()}} for more details.
 }
 \description{
-Post process pbf results
+Applies post-processing to the results of \code{process_pbf()}
+}
+\examples{
+count_fp <- system.file("count.pbf", package = "arcpbf")
+oid_fp <- system.file("ids.pbf", package = "arcpbf")
+tbl_fp <- system.file("small-table.pbf", package = "arcpbf")
+fc_fp <- system.file("small-points.pbf", package = "arcpbf")
+
+# count response
+read_pbf(count_fp) |>
+  post_process_pbf()
+
+# object id response
+read_pbf(oid_fp) |>
+  post_process_pbf()
+
+# table feature collection
+read_pbf(tbl_fp) |>
+  post_process_pbf()
+
+# feature collection with geometry
+read_pbf(fc_fp) |>
+  post_process_pbf()
 }
