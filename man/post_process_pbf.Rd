@@ -22,24 +22,14 @@ See \code{\link[=process_pbf]{process_pbf()}} for more details.
 Applies post-processing to the results of \code{process_pbf()}
 }
 \examples{
-count_fp <- system.file("count.pbf", package = "arcpbf")
-oid_fp <- system.file("ids.pbf", package = "arcpbf")
 tbl_fp <- system.file("small-table.pbf", package = "arcpbf")
 fc_fp <- system.file("small-points.pbf", package = "arcpbf")
 
-# count response
-read_pbf(count_fp) |>
-  post_process_pbf()
-
-# object id response
-read_pbf(oid_fp) |>
-  post_process_pbf()
-
 # table feature collection
-read_pbf(tbl_fp) |>
-  post_process_pbf()
+fc <- read_pbf(tbl_fp)
+head(post_process_pbf(fc))
 
 # feature collection with geometry
-read_pbf(fc_fp) |>
-  post_process_pbf()
+fc <- read_pbf(fc_fp)
+head(post_process_pbf(fc))
 }
