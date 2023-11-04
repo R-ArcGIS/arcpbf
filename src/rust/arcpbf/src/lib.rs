@@ -56,7 +56,7 @@ fn process_pbf_(proto: &[u8]) -> Robj {
 /// 
 /// Process a pbf from a raw vector or a list of raw vectors. 
 /// 
-/// @param proto either a raw vector or a list of raw vectors containing a FeatureCollection pbf
+/// @param proto either a raw vector or a list of raw vectors containing a FeatureCollection pbf    
 /// 
 /// @details 
 /// 
