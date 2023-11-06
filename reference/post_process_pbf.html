@@ -69,6 +69,15 @@
 
 <p>See <code><a href="process_pbf.html">process_pbf()</a></code> for more details.</p>
     </div>
+    <div id="details">
+    <h2>Details</h2>
+    <p>If <code>x</code> is a list object, the results will be row-binded. This is appropriate
+if each element in the list is a <code>data.frame</code> or a feature result with
+geometry. However, if each element is <em>not</em> the same, the post-processing
+<em>will</em> error. If you cannot be certain that all elements that you will be
+post processing will be the same, post-process each list element
+independently.</p>
+    </div>
 
     <div id="ref-examples">
     <h2>Examples</h2>

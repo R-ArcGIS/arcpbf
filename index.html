@@ -86,9 +86,9 @@
 </ul>
 </li>
 <li>
-<code><a href="reference/resp_body_pbf.html">resp_body_pbf()</a></code> process an <code>httr2_response</code> as a pbf</li>
+<code><a href="reference/httr2.html">resp_body_pbf()</a></code> process an <code>httr2_response</code> as a pbf</li>
 <li>
-<code><a href="reference/multi_resp_process.html">multi_resp_process()</a></code> processes a list of <code>httr2_response</code> using <code><a href="reference/process_pbf.html">process_pbf()</a></code>
+<code>multi_resp_process()</code> processes a list of <code>httr2_response</code> using <code><a href="reference/process_pbf.html">process_pbf()</a></code>
 <ul>
 <li>if an element is not a response or have a 200 status code, <code>NULL</code> is returned</li>
 </ul>
@@ -268,10 +268,10 @@
 <code class="sourceCode R"><span><span class="va">reqs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/request.html" class="external-link">request</a></span><span class="op">(</span><span class="va">url</span><span class="op">)</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">resps</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">multi_req_perform</a></span><span class="op">(</span><span class="va">reqs</span><span class="op">)</span></span></code></pre></div>
-<p>We can process all of the responses using <code><a href="reference/multi_resp_process.html">multi_resp_process()</a></code> and pass the results to <code><a href="reference/post_process_pbf.html">post_process_pbf()</a></code>.</p>
+<p>We can process all of the responses using <code>multi_resp_process()</code> and pass the results to <code><a href="reference/post_process_pbf.html">post_process_pbf()</a></code>.</p>
 <p>Note that when post processing a list of responses, <code><a href="https://Rdatatable.gitlab.io/data.table/reference/rbindlist.html" class="external-link">data.table::rbindlist()</a></code> will be used to bind the results together. If data.table is not available, <code><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">dplyr::bind_rows()</a></code> will be used. If dplyr is not available, rows will be bound together using <code>do.call(rbind.data.frame, x)</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/multi_resp_process.html">multi_resp_process</a></span><span class="op">(</span><span class="va">resps</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu">multi_resp_process</span><span class="op">(</span><span class="va">resps</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="reference/post_process_pbf.html">post_process_pbf</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
@@ -318,7 +318,7 @@
 <span>  <span class="va">reqs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">pbf_reqs</span>, <span class="fu">httr2</span><span class="fu">::</span><span class="va"><a href="https://httr2.r-lib.org/reference/request.html" class="external-link">request</a></span><span class="op">)</span></span>
 <span>  </span>
 <span>  <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">multi_req_perform</a></span><span class="op">(</span><span class="va">reqs</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="reference/multi_resp_process.html">multi_resp_process</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu">multi_resp_process</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="reference/post_process_pbf.html">post_process_pbf</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>

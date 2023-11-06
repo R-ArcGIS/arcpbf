@@ -16,10 +16,10 @@
     <loc>/index.html</loc>
   </url>
   <url>
-    <loc>/reference/index.html</loc>
+    <loc>/reference/httr2.html</loc>
   </url>
   <url>
-    <loc>/reference/multi_resp_process.html</loc>
+    <loc>/reference/index.html</loc>
   </url>
   <url>
     <loc>/reference/open_pbf.html</loc>
@@ -32,8 +32,5 @@
   </url>
   <url>
     <loc>/reference/read_pbf.html</loc>
-  </url>
-  <url>
-    <loc>/reference/resp_body_pbf.html</loc>
   </url>
 </urlset>
