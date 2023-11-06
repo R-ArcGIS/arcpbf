@@ -13,8 +13,7 @@
 #'
 #' @param x an object as returned by `process_pbf()` or `read_pbf()`
 #' @param use_sf default `TRUE`. Whether or not to return an `sf` object.
-#' @returns
-#' An object of class `data.frame` or `sf` when `use_sf = TRUE`.
+
 #' @export
 #' @returns
 #'

@@ -12,8 +12,6 @@ post_process_pbf(x, use_sf = TRUE)
 \item{use_sf}{default \code{TRUE}. Whether or not to return an \code{sf} object.}
 }
 \value{
-An object of class \code{data.frame} or \code{sf} when \code{use_sf = TRUE}.
-
 An object of class \code{data.frame}, \code{sf}, or a scalar integer vector.
 
 See \code{\link[=process_pbf]{process_pbf()}} for more details.
