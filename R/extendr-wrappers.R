@@ -11,40 +11,7 @@
 #' @useDynLib arcpbf, .registration = TRUE
 NULL
 
-#' Read a FeatureCollection Protocol Buffer 
-#' 
-#' Given a binary file containing a FeatureCollection protocol buffer (pbf),
-#' read its contents into R as an R object. 
-#' 
-#' @param path a scalar character of the path to the pbf file
-#' 
-#' @returns 
-#' 
-#' Either a data.frame, list, or scalar integer. 
-#' 
-#' See [`process_pbf()`] for more.
-#' 
-#' @examples 
-#'
-#' count_fp <- system.file("count.pbf", package = "arcpbf")
-#' oid_fp <- system.file("ids.pbf", package = "arcpbf")
-#' tbl_fp <- system.file("small-table.pbf", package = "arcpbf")
-#' fc_fp <- system.file("small-points.pbf", package = "arcpbf")
-#' 
-#' # count response
-#' read_pbf(count_fp)
-#' 
-#' # object id response
-#' head(read_pbf(oid_fp))
-#' 
-#' # table feature collection
-#' read_pbf(tbl_fp)
-#' 
-#' # feature collection with geometry 
-#' read_pbf(fc_fp)
-#' 
-#' @export
-read_pbf <- function(path) .Call(wrap__read_pbf, path)
+read_pbf_ <- function(path) .Call(wrap__read_pbf_, path)
 
 #' Read a pbf file as a raw vector
 #' 
@@ -54,14 +21,20 @@ read_pbf <- function(path) .Call(wrap__read_pbf, path)
 #' @export
 #' @examples
 #' count_fp <- system.file("count.pbf", package = "arcpbf")
-#' open_pbf(count_fp)
+#' oid_fp <- system.file("ids.pbf", package = "arcpbf")
+#' tbl_fp <- system.file("small-table.pbf", package = "arcpbf")
+#' fc_fp <- system.file("small-points.pbf", package = "arcpbf")
+#' count_raw <- open_pbf(count_fp)
+#' oid_raw <- open_pbf(oid_fp)
+#' tbl_raw <- open_pbf(tbl_fp)
+#' fc_raw <- open_pbf(fc_fp)
 open_pbf <- function(path) .Call(wrap__open_pbf, path)
 
 #' Process a FeatureCollection PBF
 #' 
 #' Process a pbf from a raw vector or a list of raw vectors. 
 #' 
-#' @param proto either a raw vector or a list of raw vectors. 
+#' @param proto either a raw vector or a list of raw vectors containing a FeatureCollection pbf    
 #' 
 #' @details 
 #' 
@@ -95,7 +68,7 @@ open_pbf <- function(path) .Call(wrap__open_pbf, path)
 #'     - `geometry` is an sfc object _**without a computed bounding box or coordinate reference system set**_
 #'     - `sr` is a named list of the spatial reference of the feature collection
 #' 
-#' **Important**: Use [`post_process_pbf()`] to convet to an `sf` object with a computed bounding box and CRS.
+#' **Important**: Use [`post_process_pbf()`] to convert to an `sf` object with a computed bounding box and CRS.
 #' 
 #' @export
 #' 
@@ -122,37 +95,7 @@ open_pbf <- function(path) .Call(wrap__open_pbf, path)
 #' process_pbf(fc_raw)
 process_pbf <- function(proto) .Call(wrap__process_pbf, proto)
 
-#' Process a list of httr2 responses
-#' 
-#' When running multiple requests in parallel using [`httr2::multi_req_perform()`]
-#' the responses are returned as a list of responses. `multi_resp_process()` processes
-#' the responses in a vectorized manner.
-#' 
-#' @details
-#' 
-#' If a response is not 200 status code or does not have the appropriate `"application/x-protobuf"`
-#' content type, the result will be `NULL`.
-#' 
-#' The results of this _are not_ post processed. Post processing can be
-#' applied to the resultant list object using `post_process_pbf()`. 
-#' See the example for a fully worked example including post-processing.
-#' 
-#' @param resps a list of `httr2_response` objects such as 
-#'   created by `httr2::multi_req_perform()`
-#' @export
-#' @family httr2
-#' @returns
-#' A list where each element is a processed FeatureCollection PBF.
-#' 
-#' @examples 
-#' if (rlang::is_installed("httr2") && interactive()) {
-#'     url <- "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=*&f=pbf&token="
-#'     reqs <- replicate(5, httr2::request(url), simplify = FALSE)
-#'     resps <- httr2::multi_req_perform(reqs)
-#'     pbfs <- multi_resp_process(resps)
-#'     post_process_pbf(pbfs)
-#' }
-multi_resp_process <- function(resps) .Call(wrap__multi_resp_process, resps)
+multi_resp_process_ <- function(resps) .Call(wrap__multi_resp_process_, resps)
 
 
 # nolint end

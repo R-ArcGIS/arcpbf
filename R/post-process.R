@@ -2,6 +2,15 @@
 #'
 #' Applies post-processing to the results of `process_pbf()`
 #'
+#' @details
+#'
+#' If `x` is a list object, the results will be row-binded. This is appropriate
+#' if each element in the list is a `data.frame` or a feature result with
+#' geometry. However, if each element is _not_ the same, the post-processing
+#' _will_ error. If you cannot be certain that all elements that you will be
+#' post processing will be the same, post-process each list element
+#' independently.
+#'
 #' @param x an object as returned by `process_pbf()` or `read_pbf()`
 #' @param use_sf default `TRUE`. Whether or not to return an `sf` object.
 #' @returns
@@ -72,12 +81,16 @@ post_process_list <- function(x, use_sf) {
   }
 
   if (use_sf) {
-    sf::st_as_sf(x)
+    # force recalculation of the bounding box
+    x[[attr(x, "sf_column")]] <- sf::st_sfc(x[[attr(x, "sf_column")]])
+    x
   } else {
     x
   }
 }
 
+# helper function to determine which component of the spatialReference needs
+# to be passed to sf::st_crs() to create the spatial reference object
 crs <- function(sr) {
   possible_crs <- sr[c("latest_wkid", "wkid", "wkt")]
   valid_crs_idx <- which(!is.na(possible_crs))[1]

@@ -21,6 +21,14 @@ See \code{\link[=process_pbf]{process_pbf()}} for more details.
 \description{
 Applies post-processing to the results of \code{process_pbf()}
 }
+\details{
+If \code{x} is a list object, the results will be row-binded. This is appropriate
+if each element in the list is a \code{data.frame} or a feature result with
+geometry. However, if each element is \emph{not} the same, the post-processing
+\emph{will} error. If you cannot be certain that all elements that you will be
+post processing will be the same, post-process each list element
+independently.
+}
 \examples{
 tbl_fp <- system.file("small-table.pbf", package = "arcpbf")
 fc_fp <- system.file("small-points.pbf", package = "arcpbf")

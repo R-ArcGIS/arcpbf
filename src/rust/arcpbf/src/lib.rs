@@ -90,7 +90,7 @@ fn process_pbf_(proto: &[u8]) -> Robj {
 ///     - `geometry` is an sfc object _**without a computed bounding box or coordinate reference system set**_
 ///     - `sr` is a named list of the spatial reference of the feature collection
 /// 
-/// **Important**: Use [`post_process_pbf()`] to convet to an `sf` object with a computed bounding box and CRS.
+/// **Important**: Use [`post_process_pbf()`] to convert to an `sf` object with a computed bounding box and CRS.
 /// 
 /// @export
 /// 
@@ -137,40 +137,7 @@ fn process_pbf(proto: Robj) -> Robj {
 }
 
 #[extendr]
-/// Read a FeatureCollection Protocol Buffer 
-/// 
-/// Given a binary file containing a FeatureCollection protocol buffer (pbf),
-/// read its contents into R as an R object. 
-/// 
-/// @param path a scalar character of the path to the pbf file
-/// 
-/// @returns 
-/// 
-/// Either a data.frame, list, or scalar integer. 
-/// 
-/// See [`process_pbf()`] for more.
-/// 
-/// @examples 
-///
-/// count_fp <- system.file("count.pbf", package = "arcpbf")
-/// oid_fp <- system.file("ids.pbf", package = "arcpbf")
-/// tbl_fp <- system.file("small-table.pbf", package = "arcpbf")
-/// fc_fp <- system.file("small-points.pbf", package = "arcpbf")
-/// 
-/// # count response
-/// read_pbf(count_fp)
-/// 
-/// # object id response
-/// head(read_pbf(oid_fp))
-/// 
-/// # table feature collection
-/// read_pbf(tbl_fp)
-/// 
-/// # feature collection with geometry 
-/// read_pbf(fc_fp)
-/// 
-/// @export
-fn read_pbf(path: &str) -> Robj {
+fn read_pbf_(path: &str) -> Robj {
     let ff = std::fs::read(path).unwrap();
     let crs = Cursor::new(ff);
     let fc = FeatureCollectionPBuffer::decode(crs).unwrap();
@@ -187,37 +154,8 @@ fn read_pbf(path: &str) -> Robj {
 }
 
 #[extendr]
-/// Process a list of httr2 responses
-/// 
-/// When running multiple requests in parallel using [`httr2::multi_req_perform()`]
-/// the responses are returned as a list of responses. `multi_resp_process()` processes
-/// the responses in a vectorized manner.
-/// 
-/// @details
-/// 
-/// If a response is not 200 status code or does not have the appropriate `"application/x-protobuf"`
-/// content type, the result will be `NULL`.
-/// 
-/// The results of this _are not_ post processed. Post processing can be
-/// applied to the resultant list object using `post_process_pbf()`. 
-/// See the example for a fully worked example including post-processing.
-/// 
-/// @param resps a list of `httr2_response` objects such as 
-///   created by `httr2::multi_req_perform()`
-/// @export
-/// @family httr2
-/// @returns
-/// A list where each element is a processed FeatureCollection PBF.
-/// 
-/// @examples 
-/// if (rlang::is_installed("httr2") && interactive()) {
-///     url <- "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=*&f=pbf&token="
-///     reqs <- replicate(5, httr2::request(url), simplify = FALSE)
-///     resps <- httr2::multi_req_perform(reqs)
-///     pbfs <- multi_resp_process(resps)
-///     post_process_pbf(pbfs)
-/// }
-fn multi_resp_process(resps: List) -> List {
+
+fn multi_resp_process_(resps: List) -> List {
     let res_vec = resps 
         .into_iter()
         .map(|(_, ri)| {
@@ -309,9 +247,8 @@ fn multi_resp_process(resps: List) -> List {
 // See corresponding C code in `entrypoint.c`.
 extendr_module! {
     mod arcpbf;
-    fn read_pbf;
+    fn read_pbf_;
     fn open_pbf;
     fn process_pbf;
-    fn multi_resp_process;
-    // fn multi_resp_process_rayon;
+    fn multi_resp_process_;
 }

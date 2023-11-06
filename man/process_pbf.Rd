@@ -7,7 +7,7 @@
 process_pbf(proto)
 }
 \arguments{
-\item{proto}{either a raw vector or a list of raw vectors.}
+\item{proto}{either a raw vector or a list of raw vectors containing a FeatureCollection pbf}
 }
 \value{
 \itemize{
@@ -21,7 +21,7 @@ process_pbf(proto)
 }
 }
 
-\strong{Important}: Use \code{\link[=post_process_pbf]{post_process_pbf()}} to convet to an \code{sf} object with a computed bounding box and CRS.
+\strong{Important}: Use \code{\link[=post_process_pbf]{post_process_pbf()}} to convert to an \code{sf} object with a computed bounding box and CRS.
 }
 \description{
 Process a pbf from a raw vector or a list of raw vectors.
