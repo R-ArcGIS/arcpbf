@@ -37,7 +37,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">arcpbf</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
       </span>
     </div>
 
@@ -45,6 +45,9 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="reference/index.html">Reference</a>
+</li>
+<li>
+  <a href="news/index.html">Changelog</a>
 </li>
       </ul>
 <ul class="nav navbar-nav navbar-right"></ul>
@@ -64,11 +67,10 @@
 <div class="section level1">
 <div class="page-header"><h1 id="arcpbf">arcpbf<a class="anchor" aria-label="anchor" href="#arcpbf"></a>
 </h1></div>
-<p><code>{arcpbf}</code> is an R package that processes Esri Protocol Buffers. It is written in Rust and powered by the <a href="https://github.com/extendr/extendr" class="external-link">extendr</a> library.</p>
-<p>arcpbf has functions for reading protocol buffer (pbf) results from an ArcGIS REST API result. pbf results are returned when <code>f=pbf</code> in a <a href="https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm" class="external-link">query</a>. The package is intended to be extremely lightweight and fast. As such, it has no hard dependencies.</p>
-<blockquote>
-<p><strong><em>Important</em></strong>: Rust must be installed to compile the package. Run the one line installation instructions at <a href="https://rustup.rs/" class="external-link uri">https://rustup.rs/</a>. To verify your Rust installation is compatible, run <code>rextendr::rust_sitrep()</code>. That’s it.</p>
-</blockquote>
+<p><code>{arcpbf}</code> is an R package that processes <a href="https://github.com/Esri/arcgis-pbf/tree/main/proto/FeatureCollection" class="external-link">Esri FeatureCollection Protocol Buffers</a>. It is written in Rust and powered by the <a href="https://github.com/extendr/extendr" class="external-link">extendr</a> library.</p>
+<p>arcpbf has functions for reading protocol buffer (pbf) results from an ArcGIS REST API result. pbf results are returned when <code>f=pbf</code> in a <a href="https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm" class="external-link">query</a>.</p>
+<p>The package is extremely lightweight and fast.</p>
+<p>Limitation: this package does not support Z and M dimensions at this point.</p>
 <div class="section level2">
 <h2 id="tldr">TL;DR<a class="anchor" aria-label="anchor" href="#tldr"></a>
 </h2>
@@ -76,223 +78,284 @@
 <li>
 <code><a href="reference/open_pbf.html">open_pbf()</a></code> will read a FeatureCollection <code>pbf</code> file into a raw vector</li>
 <li>
-<code><a href="reference/read_pbf.html">read_pbf()</a></code> will read a FeatureCollection <code>pbf</code> file <em>and</em> process it</li>
+<code><a href="reference/read_pbf.html">read_pbf()</a></code> will read a FeatureCollection <code>pbf</code> file <em>and</em> process it with</li>
+<li>
+<code><a href="reference/httr2.html">resp_body_pbf()</a></code> and <code><a href="reference/httr2.html">multi_resp_body_pbf()</a></code> process <code>httr2_response</code> objects with FeatureCollection pbf bodies</li>
 <li>
 <code><a href="reference/process_pbf.html">process_pbf()</a></code> will process a raw vector or a list of raw vectors</li>
 <li>
 <code><a href="reference/post_process_pbf.html">post_process_pbf()</a></code> will apply post processing steps to the results of <code><a href="reference/process_pbf.html">process_pbf()</a></code>
 <ul>
-<li>set <code>use_sf = FALSE</code> to return a <code>data.frame</code> otherwise an <code>sf</code> object will be returned</li>
-</ul>
-</li>
-<li>
-<code><a href="reference/httr2.html">resp_body_pbf()</a></code> process an <code>httr2_response</code> as a pbf</li>
-<li>
-<code>multi_resp_process()</code> processes a list of <code>httr2_response</code> using <code><a href="reference/process_pbf.html">process_pbf()</a></code>
-<ul>
-<li>if an element is not a response or have a 200 status code, <code>NULL</code> is returned</li>
+<li>set <code>use_sf = TRUE</code> to return an <code>sf</code> object if possible. Applied by default in <code><a href="reference/read_pbf.html">read_pbf()</a></code>, <code><a href="reference/httr2.html">resp_body_pbf()</a></code> and <code><a href="reference/httr2.html">multi_resp_body_pbf()</a></code>.</li>
 </ul>
 </li>
 </ul>
+<blockquote>
+<p><strong><em>Developer Note</em></strong>: Rust must be installed to compile the package. Run the one line installation instructions at <a href="https://rustup.rs/" class="external-link uri">https://rustup.rs/</a>. To verify your Rust installation is compatible, run <code>rextendr::rust_sitrep()</code>. That’s it.</p>
+</blockquote>
+<div class="section level3">
+<h3 id="pbf-support">PBF support<a class="anchor" aria-label="anchor" href="#pbf-support"></a>
+</h3>
+<p>Note that <em>only</em> the FeatureCollection pbf specification is supported by arcpbf. If you want to process OSM pbf files use <a href="https://docs.ropensci.org/osmextract/reference/oe_read.html" class="external-link"><code>osmextract::oe_read()</code></a>. Or, if you want to create and read arbitrary protocol buffers directly in R, use <a href="https://cran.r-project.org/web/packages/RProtoBuf" class="external-link"><code>RprotoBuf</code></a>.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="basic-usage">Basic usage<a class="anchor" aria-label="anchor" href="#basic-usage"></a>
 </h2>
-<p>There are two ways of processing a FeatureCollection pbf. We either can read directly from a binary file (typically with a <code>.pbf</code> extension). Or, we process the a raw vector containing the binary of a pbf as returned by an http request. These are accomplished with <code><a href="reference/read_pbf.html">read_pbf()</a></code> and <code><a href="reference/process_pbf.html">process_pbf()</a></code> respectively.</p>
-<p>Here we read a single pbf file.</p>
+<p>In most cases, we will be processing a protocol buffer directly from an http request created with <a href="https://httr2.r-lib.org/" class="external-link"><code>{httr2}</code></a>.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">arcpbf</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/read_pbf.html">read_pbf</a></span><span class="op">(</span><span class="st">"inst/pbfs/pnts.pbf"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; List of 3</span></span>
-<span><span class="co">#&gt;  $ attributes:'data.frame':  10 obs. of  18 variables:</span></span>
-<span><span class="co">#&gt;  $ geometry  :List of 10</span></span>
-<span><span class="co">#&gt;   ..- attr(*, "class")= chr [1:2] "sfc_POINT" "sfc"</span></span>
-<span><span class="co">#&gt;   ..- attr(*, "precision")= num 0</span></span>
-<span><span class="co">#&gt;   ..- attr(*, "n_empty")= int 0</span></span>
-<span><span class="co">#&gt;   ..- attr(*, "bbox")= Named num [1:4] NA NA NA NA</span></span>
-<span><span class="co">#&gt;   .. ..- attr(*, "names")= chr [1:4] "xmin" "ymin" "xmax" "ymax"</span></span>
-<span><span class="co">#&gt;   ..- attr(*, "crs")=List of 2</span></span>
-<span><span class="co">#&gt;   .. ..- attr(*, "class")= chr "crs"</span></span>
-<span><span class="co">#&gt;  $ sr        :List of 5</span></span></code></pre></div>
-<p>For pbf files containing geometries, we retrieve a list of 3 elements:</p>
-<ul>
-<li>
-<code>attributes</code> is a <code>data.frame</code> of the fields of the FeatureCollection</li>
-<li>
-<code>geometry</code> is a pseudo-sfc object (more on this later) which is a list of sfg geometry objects</li>
-<li>
-<code>sr</code> is a named list of the spatial reference of the feature collection</li>
-</ul>
-<p>Whereas FeatureCollections <em>without geometries</em> will always return a single data.frame.</p>
+<span><span class="co"># specify url to sent our request to</span></span>
+<span><span class="va">url</span> <span class="op">&lt;-</span> <span class="st">"https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&amp;outFields=objectid&amp;resultRecordCount=10&amp;f=pbf&amp;token="</span></span>
+<span><span class="va">req</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/request.html" class="external-link">request</a></span><span class="op">(</span><span class="va">url</span><span class="op">)</span></span>
+<span><span class="va">resp</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/req_perform.html" class="external-link">req_perform</a></span><span class="op">(</span><span class="va">req</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">resp</span></span>
+<span><span class="co">#&gt; &lt;httr2_response&gt;</span></span>
+<span><span class="co">#&gt; GET</span></span>
+<span><span class="co">#&gt; https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&amp;outFields=objectid&amp;resultRecordCount=10&amp;f=pbf&amp;token=</span></span>
+<span><span class="co">#&gt; Status: 200 OK</span></span>
+<span><span class="co">#&gt; Content-Type: application/x-protobuf</span></span>
+<span><span class="co">#&gt; Body: In memory (60102 bytes)</span></span></code></pre></div>
+<p>We can process request responses with <code><a href="reference/httr2.html">resp_body_pbf()</a></code>. Post-processing steps are applied by default. The arguments <code>post_process</code> and <code>use_sf</code> are <code>TRUE</code> by default.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/read_pbf.html">read_pbf</a></span><span class="op">(</span><span class="st">"inst/pbfs/small-table.pbf"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   OBJECTID       Adoption_Service_Provider  DBA       city                state</span></span>
-<span><span class="co">#&gt; 1        1 A Family in Bloom Adoption, LLC &lt;NA&gt;    Boulder             Colorado</span></span>
-<span><span class="co">#&gt; 2        2     A Love Beyond Borders, Inc. &lt;NA&gt;     Denver             Colorado</span></span>
-<span><span class="co">#&gt; 3        3                  Adopolis, Inc. &lt;NA&gt; Washington District of Columbia</span></span>
-<span><span class="co">#&gt;    Accreditation_or_Approval_Statu Accredited_Approvedto_Provide</span></span>
-<span><span class="co">#&gt; 1 Accredited/Approved – In Process         Incoming and Outgoing</span></span>
-<span><span class="co">#&gt; 2                         Approved                      Incoming</span></span>
-<span><span class="co">#&gt; 3                       Accredited                      Incoming</span></span>
-<span><span class="co">#&gt;                                           full_address</span></span>
-<span><span class="co">#&gt; 1           Adoption Service Provider,Boulder,Colorado</span></span>
-<span><span class="co">#&gt; 2      A Family in Bloom Adoption, LLC,Denver,Colorado</span></span>
-<span><span class="co">#&gt; 3 A Love Beyond Borders, Inc.,Washington,Washington DC</span></span></code></pre></div>
-<p>These results use no external dependencies. If we want to convert the named list into a familiar sf object we will have to <strong>post-process</strong> it using <code><a href="reference/post_process_pbf.html">post_process_pbf()</a></code>. The <code>use_sf</code> argument, which defaults to <code>TRUE</code>, will use the <code>sf</code> package to return an <code>sf</code> object.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/post_process_pbf.html">post_process_pbf</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Simple feature collection with 10 features and 18 fields</span></span>
-<span><span class="co">#&gt; Geometry type: POINT</span></span>
-<span><span class="co">#&gt; Dimension:     XY</span></span>
-<span><span class="co">#&gt; Bounding box:  xmin: NA ymin: NA xmax: NA ymax: NA</span></span>
-<span><span class="co">#&gt; Projected CRS: WGS 84 / Pseudo-Mercator</span></span>
-<span><span class="co">#&gt;           id          retailer                fascia</span></span>
-<span><span class="co">#&gt; 1 1010001841 Marks and Spencer Marks and Spencer MSA</span></span>
-<span><span class="co">#&gt; 2 1010000921              Asda      Asda Supercentre</span></span>
-<span><span class="co">#&gt; 3 1010003178        Sainsburys            Sainsburys</span></span>
-<span><span class="co">#&gt; 4 1010014115           Budgens               Budgens</span></span>
-<span><span class="co">#&gt; 5 1010015258              Lidl                  Lidl</span></span>
-<span><span class="co">#&gt;                      store_name                  add_one          add_two</span></span>
-<span><span class="co">#&gt; 1   M&amp;S Reading East M4 Moto SF Reading East Services M4             &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 2 Asda Lower Earley Supercentre             Chalfort Way     Lower Earley</span></span>
-<span><span class="co">#&gt; 3             Sainsburys Calcot                Bath Road           Calcot</span></span>
-<span><span class="co">#&gt; 4      Budgens Three Mile Cross         Basingstoke Road Three Mile Cross</span></span>
-<span><span class="co">#&gt; 5           Lidl Calcot Reading                Bath Road             &lt;NA&gt;</span></span>
-<span><span class="co">#&gt;               town suburb postcode   long_wgs  lat_wgs    bng_e    bng_n</span></span>
-<span><span class="co">#&gt; 1          Reading Calcot RG30 3UQ -1.0350837 51.42616 467183.5 170124.7</span></span>
-<span><span class="co">#&gt; 2          Reading Earley  RG6 5TT -0.9327606 51.42482 474299.7 170075.0</span></span>
-<span><span class="co">#&gt; 3          Reading Calcot RG31 7SA -1.0614843 51.44304 465324.0 171978.0</span></span>
-<span><span class="co">#&gt; 4 Three Mile Cross   &lt;NA&gt;  RG7 1BA -0.9739431 51.40521 471466.9 167853.1</span></span>
-<span><span class="co">#&gt; 5          Reading Calcot RG30 2HB -1.0244860 51.44386 467894.1 172102.9</span></span>
-<span><span class="co">#&gt;                            pqi open_date                              size_band</span></span>
-<span><span class="co">#&gt; 1 Rooftop geocoded by Geolytix      &lt;NA&gt;                    &lt; 3,013 ft2 (280m2)</span></span>
-<span><span class="co">#&gt; 2 Rooftop geocoded by Geolytix      &lt;NA&gt;                30,138 ft2 &gt; (2,800 m2)</span></span>
-<span><span class="co">#&gt; 3 Rooftop geocoded by Geolytix      &lt;NA&gt;                30,138 ft2 &gt; (2,800 m2)</span></span>
-<span><span class="co">#&gt; 4 Rooftop geocoded by Geolytix  20169999    3,013 &lt; 15,069 ft2 (280 &lt; 1,400 m2)</span></span>
-<span><span class="co">#&gt; 5 Rooftop geocoded by Geolytix  20171026 15,069 &lt; 30,138 ft2 (1,400 &lt; 2,800 m2)</span></span>
-<span><span class="co">#&gt;      county ObjectId                  geometry</span></span>
-<span><span class="co">#&gt; 1 Berkshire        1   POINT (-115225 6697025)</span></span>
-<span><span class="co">#&gt; 2 Berkshire        2 POINT (-103834.4 6696787)</span></span>
-<span><span class="co">#&gt; 3 Berkshire        3 POINT (-118163.9 6700039)</span></span>
-<span><span class="co">#&gt; 4 Berkshire        4 POINT (-108418.9 6693287)</span></span>
-<span><span class="co">#&gt; 5 Berkshire        5 POINT (-114045.3 6700186)</span></span>
-<span><span class="co">#&gt;  [ reached 'max' / getOption("max.print") -- omitted 5 rows ]</span></span></code></pre></div>
-<p>If it is set to <code>FALSE</code>, it will return a <code>data.frame</code>.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/post_process_pbf.html">post_process_pbf</a></span><span class="op">(</span><span class="va">x</span>, use_sf <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt;           id          retailer                fascia</span></span>
-<span><span class="co">#&gt; 1 1010001841 Marks and Spencer Marks and Spencer MSA</span></span>
-<span><span class="co">#&gt; 2 1010000921              Asda      Asda Supercentre</span></span>
-<span><span class="co">#&gt; 3 1010003178        Sainsburys            Sainsburys</span></span>
-<span><span class="co">#&gt; 4 1010014115           Budgens               Budgens</span></span>
-<span><span class="co">#&gt; 5 1010015258              Lidl                  Lidl</span></span>
-<span><span class="co">#&gt;                      store_name                  add_one          add_two</span></span>
-<span><span class="co">#&gt; 1   M&amp;S Reading East M4 Moto SF Reading East Services M4             &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 2 Asda Lower Earley Supercentre             Chalfort Way     Lower Earley</span></span>
-<span><span class="co">#&gt; 3             Sainsburys Calcot                Bath Road           Calcot</span></span>
-<span><span class="co">#&gt; 4      Budgens Three Mile Cross         Basingstoke Road Three Mile Cross</span></span>
-<span><span class="co">#&gt; 5           Lidl Calcot Reading                Bath Road             &lt;NA&gt;</span></span>
-<span><span class="co">#&gt;               town suburb postcode   long_wgs  lat_wgs    bng_e    bng_n</span></span>
-<span><span class="co">#&gt; 1          Reading Calcot RG30 3UQ -1.0350837 51.42616 467183.5 170124.7</span></span>
-<span><span class="co">#&gt; 2          Reading Earley  RG6 5TT -0.9327606 51.42482 474299.7 170075.0</span></span>
-<span><span class="co">#&gt; 3          Reading Calcot RG31 7SA -1.0614843 51.44304 465324.0 171978.0</span></span>
-<span><span class="co">#&gt; 4 Three Mile Cross   &lt;NA&gt;  RG7 1BA -0.9739431 51.40521 471466.9 167853.1</span></span>
-<span><span class="co">#&gt; 5          Reading Calcot RG30 2HB -1.0244860 51.44386 467894.1 172102.9</span></span>
-<span><span class="co">#&gt;                            pqi open_date                              size_band</span></span>
-<span><span class="co">#&gt; 1 Rooftop geocoded by Geolytix      &lt;NA&gt;                    &lt; 3,013 ft2 (280m2)</span></span>
-<span><span class="co">#&gt; 2 Rooftop geocoded by Geolytix      &lt;NA&gt;                30,138 ft2 &gt; (2,800 m2)</span></span>
-<span><span class="co">#&gt; 3 Rooftop geocoded by Geolytix      &lt;NA&gt;                30,138 ft2 &gt; (2,800 m2)</span></span>
-<span><span class="co">#&gt; 4 Rooftop geocoded by Geolytix  20169999    3,013 &lt; 15,069 ft2 (280 &lt; 1,400 m2)</span></span>
-<span><span class="co">#&gt; 5 Rooftop geocoded by Geolytix  20171026 15,069 &lt; 30,138 ft2 (1,400 &lt; 2,800 m2)</span></span>
-<span><span class="co">#&gt;      county ObjectId                  geometry</span></span>
-<span><span class="co">#&gt; 1 Berkshire        1   POINT (-115225 6697025)</span></span>
-<span><span class="co">#&gt; 2 Berkshire        2 POINT (-103834.4 6696787)</span></span>
-<span><span class="co">#&gt; 3 Berkshire        3 POINT (-118163.9 6700039)</span></span>
-<span><span class="co">#&gt; 4 Berkshire        4 POINT (-108418.9 6693287)</span></span>
-<span><span class="co">#&gt; 5 Berkshire        5 POINT (-114045.3 6700186)</span></span>
-<span><span class="co">#&gt;  [ reached 'max' / getOption("max.print") -- omitted 5 rows ]</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="types-of-featurecollection-results">Types of FeatureCollection results<a class="anchor" aria-label="anchor" href="#types-of-featurecollection-results"></a>
-</h2>
-<p>The FeatureCollection pbf can return three different types of results. They can be query results as above, or they can also be <strong>count</strong> or <strong>Object ID</strong> results.</p>
-<p>Counts will always return a scalar integer vector.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/read_pbf.html">read_pbf</a></span><span class="op">(</span><span class="st">"inst/pbfs/count.pbf"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 3143</span></span></code></pre></div>
-<p>Whereas the Object ID result type will return a <code>data.frame</code> with a single column. The column name is the name of the object ID field and the values are the object IDs as a numeric vector.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/read_pbf.html">read_pbf</a></span><span class="op">(</span><span class="st">"inst/pbfs/ids.pbf"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ids</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   OBJECTID</span></span>
-<span><span class="co">#&gt; 1       93</span></span>
-<span><span class="co">#&gt; 2       73</span></span>
-<span><span class="co">#&gt; 3       83</span></span>
-<span><span class="co">#&gt; 4       86</span></span>
-<span><span class="co">#&gt; 5     2671</span></span>
-<span><span class="co">#&gt; 6     3140</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="reading-from-a-raw-vector">Reading from a raw vector<a class="anchor" aria-label="anchor" href="#reading-from-a-raw-vector"></a>
-</h2>
-<p>The <code><a href="reference/open_pbf.html">open_pbf()</a></code> function will read a pbf file into a raw vector which can be passed to <code><a href="reference/process_pbf.html">process_pbf()</a></code>. In general you will not need this function, but it is handy for the sake of example.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pbf_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/open_pbf.html">open_pbf</a></span><span class="op">(</span><span class="st">"inst/pbfs/big-pnts.pbf"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">pbf_raw</span>, <span class="fl">20</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1] 12 aa ec 10 0a a6 ec 10 0a 08 4f 62 6a 65 63 74 49 64 12 0c</span></span></code></pre></div>
-<p>This raw vector can be turned into an R object using <code><a href="reference/process_pbf.html">process_pbf()</a></code>.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_pbf.html">process_pbf</a></span><span class="op">(</span><span class="va">pbf_raw</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">res</span>, <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; List of 3</span></span>
-<span><span class="co">#&gt;  $ attributes:'data.frame':  1000 obs. of  18 variables:</span></span>
-<span><span class="co">#&gt;  $ geometry  :sfc_POINT of length 1000; first list element:  'XY' num [1:2] -115225 6697025</span></span>
-<span><span class="co">#&gt;  $ sr        :List of 5</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="processing-requests">Processing requests<a class="anchor" aria-label="anchor" href="#processing-requests"></a>
-</h2>
-<p>The true purpose of this package is to process requests from the REST API. Here we process a single request using <a href="https://httr2.r-lib.org/" class="external-link"><code>{httr2}</code></a></p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">url</span> <span class="op">&lt;-</span> <span class="st">"https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&amp;outFields=objectid&amp;f=pbf&amp;token="</span></span>
-<span></span>
-<span><span class="va">resp</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/request.html" class="external-link">request</a></span><span class="op">(</span><span class="va">url</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/req_perform.html" class="external-link">req_perform</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/resp_body_raw.html" class="external-link">resp_body_raw</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_pbf.html">process_pbf</a></span><span class="op">(</span><span class="va">resp</span><span class="op">)</span></span></code></pre></div>
-<p>In developing an R package, one may be creating multiple requests in parallel using <code><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">httr2::multi_req_perform()</a></code> as is done in <a href="https://github.com/R-ArcGIS/arcgislayers" class="external-link"><code>{arcgislayers}</code></a>.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">reqs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/request.html" class="external-link">request</a></span><span class="op">(</span><span class="va">url</span><span class="op">)</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">resps</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">multi_req_perform</a></span><span class="op">(</span><span class="va">reqs</span><span class="op">)</span></span></code></pre></div>
-<p>We can process all of the responses using <code>multi_resp_process()</code> and pass the results to <code><a href="reference/post_process_pbf.html">post_process_pbf()</a></code>.</p>
-<p>Note that when post processing a list of responses, <code><a href="https://Rdatatable.gitlab.io/data.table/reference/rbindlist.html" class="external-link">data.table::rbindlist()</a></code> will be used to bind the results together. If data.table is not available, <code><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">dplyr::bind_rows()</a></code> will be used. If dplyr is not available, rows will be bound together using <code>do.call(rbind.data.frame, x)</code>.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu">multi_resp_process</span><span class="op">(</span><span class="va">resps</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="reference/post_process_pbf.html">post_process_pbf</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Simple feature collection with 6 features and 1 field</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="reference/httr2.html">resp_body_pbf</a></span><span class="op">(</span><span class="va">resp</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Simple feature collection with 10 features and 1 field</span></span>
 <span><span class="co">#&gt; Geometry type: POLYGON</span></span>
 <span><span class="co">#&gt; Dimension:     XY</span></span>
 <span><span class="co">#&gt; Bounding box:  xmin: -17298700 ymin: 2216212 xmax: -17253470 ymax: 2261306</span></span>
 <span><span class="co">#&gt; Projected CRS: WGS 84 / Pseudo-Mercator</span></span>
-<span><span class="co">#&gt;   OBJECTID                       geometry</span></span>
-<span><span class="co">#&gt; 1        1 POLYGON ((-17264972 2244291...</span></span>
-<span><span class="co">#&gt; 2        2 POLYGON ((-17264972 2244291...</span></span>
-<span><span class="co">#&gt; 3        3 POLYGON ((-17264587 2241560...</span></span>
-<span><span class="co">#&gt; 4        4 POLYGON ((-17263053 2239296...</span></span>
-<span><span class="co">#&gt; 5        5 POLYGON ((-17261894 2236947...</span></span>
-<span><span class="co">#&gt; 6        6 POLYGON ((-17262143 2241010...</span></span></code></pre></div>
+<span><span class="co">#&gt;    OBJECTID                       geometry</span></span>
+<span><span class="co">#&gt; 1         1 POLYGON ((-17264972 2244291...</span></span>
+<span><span class="co">#&gt; 2         2 POLYGON ((-17264972 2244291...</span></span>
+<span><span class="co">#&gt; 3         3 POLYGON ((-17264587 2241560...</span></span>
+<span><span class="co">#&gt; 4         4 POLYGON ((-17263053 2239296...</span></span>
+<span><span class="co">#&gt; 5         5 POLYGON ((-17261894 2236947...</span></span>
+<span><span class="co">#&gt; 6         6 POLYGON ((-17262143 2241010...</span></span>
+<span><span class="co">#&gt; 7         7 POLYGON ((-17261575 2233733...</span></span>
+<span><span class="co">#&gt; 8         8 POLYGON ((-17263397 2234419...</span></span>
+<span><span class="co">#&gt; 9         9 POLYGON ((-17269918 2239302...</span></span>
+<span><span class="co">#&gt; 10       10 POLYGON ((-17265323 2239121...</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="multiple-response-objects">Multiple response objects<a class="anchor" aria-label="anchor" href="#multiple-response-objects"></a>
+</h3>
+<p>When running multiple requests in parallel using <code><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">httr2::multi_req_perform()</a></code> the responses are returned as a list of responses. <code><a href="reference/httr2.html">multi_resp_body_pbf()</a></code> processes the responses in a vectorized manner.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># create a list of requests</span></span>
+<span><span class="va">reqs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">5</span>, <span class="va">req</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co"># perform them in parallel</span></span>
+<span><span class="va">resps</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">multi_req_perform</a></span><span class="op">(</span><span class="va">reqs</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># process the responses </span></span>
+<span><span class="fu"><a href="reference/httr2.html">multi_resp_body_pbf</a></span><span class="op">(</span><span class="va">resps</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Simple feature collection with 50 features and 1 field</span></span>
+<span><span class="co">#&gt; Geometry type: POLYGON</span></span>
+<span><span class="co">#&gt; Dimension:     XY</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: -17298700 ymin: 2216212 xmax: -17253470 ymax: 2261306</span></span>
+<span><span class="co">#&gt; Projected CRS: WGS 84 / Pseudo-Mercator</span></span>
+<span><span class="co">#&gt; First 10 features:</span></span>
+<span><span class="co">#&gt;    OBJECTID                       geometry</span></span>
+<span><span class="co">#&gt; 1         1 POLYGON ((-17264972 2244291...</span></span>
+<span><span class="co">#&gt; 2         2 POLYGON ((-17264972 2244291...</span></span>
+<span><span class="co">#&gt; 3         3 POLYGON ((-17264587 2241560...</span></span>
+<span><span class="co">#&gt; 4         4 POLYGON ((-17263053 2239296...</span></span>
+<span><span class="co">#&gt; 5         5 POLYGON ((-17261894 2236947...</span></span>
+<span><span class="co">#&gt; 6         6 POLYGON ((-17262143 2241010...</span></span>
+<span><span class="co">#&gt; 7         7 POLYGON ((-17261575 2233733...</span></span>
+<span><span class="co">#&gt; 8         8 POLYGON ((-17263397 2234419...</span></span>
+<span><span class="co">#&gt; 9         9 POLYGON ((-17269918 2239302...</span></span>
+<span><span class="co">#&gt; 10       10 POLYGON ((-17265323 2239121...</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="reading-from-a-file">Reading from a file<a class="anchor" aria-label="anchor" href="#reading-from-a-file"></a>
+</h3>
+<p>In some cases you may have a file on disk that you want to process a pbf from. Use <code><a href="reference/read_pbf.html">read_pbf()</a></code> to do so. Again, post-processing steps are applied by default.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"small-points.pbf"</span>, package <span class="op">=</span> <span class="st">"arcpbf"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/read_pbf.html">read_pbf</a></span><span class="op">(</span><span class="va">fp</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Simple feature collection with 2 features and 1 field</span></span>
+<span><span class="co">#&gt; Geometry type: POLYGON</span></span>
+<span><span class="co">#&gt; Dimension:     XY</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: -17298700 ymin: 2216212 xmax: -17260020 ymax: 2261306</span></span>
+<span><span class="co">#&gt; Projected CRS: WGS 84 / Pseudo-Mercator</span></span>
+<span><span class="co">#&gt;          County                       geometry</span></span>
+<span><span class="co">#&gt; 1 Hawaii County POLYGON ((-17264972 2244291...</span></span>
+<span><span class="co">#&gt; 2 Hawaii County POLYGON ((-17264972 2244291...</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="featurecollection-result-types">FeatureCollection Result Types<a class="anchor" aria-label="anchor" href="#featurecollection-result-types"></a>
+</h2>
+<p>There are three types of PBF FeatureCollection responses that may be returned as a result of a <a href="https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm" class="external-link">Feature Service Query request</a>.</p>
+<ul>
+<li>
+<strong>Feature Results</strong>:
+<ul>
+<li>the default query response type. Contains individual features with their attributes and geometries if available.</li>
+</ul>
+</li>
+<li>
+<strong>Count Result</strong>:
+<ul>
+<li>returned when <code>returnCountOnly=true</code> in an API request. Returned as a scalar integer vector.</li>
+</ul>
+</li>
+<li>
+<strong>Object ID Result</strong>:
+<ul>
+<li>returned when <code>returnIdsOnly=true</code>. A <code>data.frame</code> containing object IDs where the column name is set to the object ID field name of the feature service.</li>
+</ul>
+</li>
+</ul>
+<div class="section level3">
+<h3 id="feature-results">Feature Results<a class="anchor" aria-label="anchor" href="#feature-results"></a>
+</h3>
+<p>Feature results can either omit geometry entirely, for example in the case of a Table or when the query parameter <code>returnGeometry=false</code>, or include it. When geometry is omitted entirely, the response is processed as a simple <code>data.frame</code>. However, if the response does contain geometry, the response is a bit more complex.</p>
+<p>Unprocessed feature results with geometries return a named list with 3 elements:</p>
+<ul>
+<li>
+<code>attributes</code>:
+<ul>
+<li>a <code>data.frame</code> of the fields and their values</li>
+</ul>
+</li>
+<li>
+<code>sr</code>:
+<ul>
+<li>a named list with elements <code>wkt</code>, <code>wkid</code>, <code>latest_wkid</code>, <code>vcs_wkid</code>, and <code>latest_vcs_wkid</code>. These determine the coordinate reference system of the response as well as the vertical coordinate reference system.</li>
+</ul>
+</li>
+<li>
+<code>geometry</code>:
+<ul>
+<li>an <code>sfc</code> object <strong><em>without a computed bounding box or coordinate reference system set</em></strong> or a CRS set.</li>
+</ul>
+</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># read an example pbf without post-processing</span></span>
+<span><span class="va">fc_fp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"small-points.pbf"</span>, package <span class="op">=</span> <span class="st">"arcpbf"</span><span class="op">)</span></span>
+<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/read_pbf.html">read_pbf</a></span><span class="op">(</span><span class="va">fc_fp</span>, post_process <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">res</span></span>
+<span><span class="co">#&gt; $attributes</span></span>
+<span><span class="co">#&gt;          County</span></span>
+<span><span class="co">#&gt; 1 Hawaii County</span></span>
+<span><span class="co">#&gt; 2 Hawaii County</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $geometry</span></span>
+<span><span class="co">#&gt; Geometry set for 2 features </span></span>
+<span><span class="co">#&gt; Geometry type: POLYGON</span></span>
+<span><span class="co">#&gt; Dimension:     XY</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: NA ymin: NA xmax: NA ymax: NA</span></span>
+<span><span class="co">#&gt; CRS:           NA</span></span>
+<span><span class="co">#&gt; POLYGON ((-17264972 2244291, -17264988 2244297,...</span></span>
+<span><span class="co">#&gt; POLYGON ((-17264972 2244291, -17264967 2244286,...</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $sr</span></span>
+<span><span class="co">#&gt; $sr$wkt</span></span>
+<span><span class="co">#&gt; [1] NA</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $sr$wkid</span></span>
+<span><span class="co">#&gt; [1] 102100</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $sr$latest_wkid</span></span>
+<span><span class="co">#&gt; [1] 3857</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $sr$vcs_wkid</span></span>
+<span><span class="co">#&gt; [1] NA</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $sr$latest_vcs_wkid</span></span>
+<span><span class="co">#&gt; [1] NA</span></span></code></pre></div>
+<p>When post-processing is applied to a geometry Feature Result, the CRS is set and the bounding box is computed. This requires the <code>sf</code> package to be available.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/post_process_pbf.html">post_process_pbf</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Simple feature collection with 2 features and 1 field</span></span>
+<span><span class="co">#&gt; Geometry type: POLYGON</span></span>
+<span><span class="co">#&gt; Dimension:     XY</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: -17298700 ymin: 2216212 xmax: -17260020 ymax: 2261306</span></span>
+<span><span class="co">#&gt; Projected CRS: WGS 84 / Pseudo-Mercator</span></span>
+<span><span class="co">#&gt;          County                       geometry</span></span>
+<span><span class="co">#&gt; 1 Hawaii County POLYGON ((-17264972 2244291...</span></span>
+<span><span class="co">#&gt; 2 Hawaii County POLYGON ((-17264972 2244291...</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="lower-level-functions">Lower level functions<a class="anchor" aria-label="anchor" href="#lower-level-functions"></a>
+</h2>
+<p>The function <code><a href="reference/open_pbf.html">open_pbf()</a></code> will read a pbf file into a raw vector which can be passed to <code><a href="reference/process_pbf.html">process_pbf()</a></code>. In general you will not need this function, but it is handy for the sake of example.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pbf_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/open_pbf.html">open_pbf</a></span><span class="op">(</span><span class="va">fc_fp</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">pbf_raw</span>, <span class="fl">20</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  [1] 12 ac fd 01 0a a8 fd 01 0a 08 4f 42 4a 45 43 54 49 44 12 0c</span></span></code></pre></div>
+<p>This raw vector can be turned into an R object using <code><a href="reference/process_pbf.html">process_pbf()</a></code>. The output <em>will not</em> be post processed.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_pbf.html">process_pbf</a></span><span class="op">(</span><span class="va">pbf_raw</span><span class="op">)</span></span>
+<span><span class="va">res</span></span>
+<span><span class="co">#&gt; $attributes</span></span>
+<span><span class="co">#&gt;          County</span></span>
+<span><span class="co">#&gt; 1 Hawaii County</span></span>
+<span><span class="co">#&gt; 2 Hawaii County</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $geometry</span></span>
+<span><span class="co">#&gt; Geometry set for 2 features </span></span>
+<span><span class="co">#&gt; Geometry type: POLYGON</span></span>
+<span><span class="co">#&gt; Dimension:     XY</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: NA ymin: NA xmax: NA ymax: NA</span></span>
+<span><span class="co">#&gt; CRS:           NA</span></span>
+<span><span class="co">#&gt; POLYGON ((-17264972 2244291, -17264988 2244297,...</span></span>
+<span><span class="co">#&gt; POLYGON ((-17264972 2244291, -17264967 2244286,...</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $sr</span></span>
+<span><span class="co">#&gt; $sr$wkt</span></span>
+<span><span class="co">#&gt; [1] NA</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $sr$wkid</span></span>
+<span><span class="co">#&gt; [1] 102100</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $sr$latest_wkid</span></span>
+<span><span class="co">#&gt; [1] 3857</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $sr$vcs_wkid</span></span>
+<span><span class="co">#&gt; [1] NA</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $sr$latest_vcs_wkid</span></span>
+<span><span class="co">#&gt; [1] NA</span></span></code></pre></div>
+<p>Post-processing can be applied to the result of <code><a href="reference/process_pbf.html">process_pbf()</a></code> using <code><a href="reference/post_process_pbf.html">post_process_pbf()</a></code>.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/post_process_pbf.html">post_process_pbf</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Simple feature collection with 2 features and 1 field</span></span>
+<span><span class="co">#&gt; Geometry type: POLYGON</span></span>
+<span><span class="co">#&gt; Dimension:     XY</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: -17298700 ymin: 2216212 xmax: -17260020 ymax: 2261306</span></span>
+<span><span class="co">#&gt; Projected CRS: WGS 84 / Pseudo-Mercator</span></span>
+<span><span class="co">#&gt;          County                       geometry</span></span>
+<span><span class="co">#&gt; 1 Hawaii County POLYGON ((-17264972 2244291...</span></span>
+<span><span class="co">#&gt; 2 Hawaii County POLYGON ((-17264972 2244291...</span></span></code></pre></div>
+<p><code><a href="reference/post_process_pbf.html">post_process_pbf()</a></code> can also be applied to a list of processed pbf responses.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">multi_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">res</span>, <span class="va">res</span>, <span class="va">res</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/post_process_pbf.html">post_process_pbf</a></span><span class="op">(</span><span class="va">multi_res</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Simple feature collection with 6 features and 1 field</span></span>
+<span><span class="co">#&gt; Geometry type: POLYGON</span></span>
+<span><span class="co">#&gt; Dimension:     XY</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: -17298700 ymin: 2216212 xmax: -17260020 ymax: 2261306</span></span>
+<span><span class="co">#&gt; Projected CRS: WGS 84 / Pseudo-Mercator</span></span>
+<span><span class="co">#&gt;          County                       geometry</span></span>
+<span><span class="co">#&gt; 1 Hawaii County POLYGON ((-17264972 2244291...</span></span>
+<span><span class="co">#&gt; 2 Hawaii County POLYGON ((-17264972 2244291...</span></span>
+<span><span class="co">#&gt; 3 Hawaii County POLYGON ((-17264972 2244291...</span></span>
+<span><span class="co">#&gt; 4 Hawaii County POLYGON ((-17264972 2244291...</span></span>
+<span><span class="co">#&gt; 5 Hawaii County POLYGON ((-17264972 2244291...</span></span>
+<span><span class="co">#&gt; 6 Hawaii County POLYGON ((-17264972 2244291...</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="benchmarking">Benchmarking<a class="anchor" aria-label="anchor" href="#benchmarking"></a>
 </h2>
 <p>Below is a bench mark that compares processing pbfs to the current approach of processing raw json in arcgislayers and arcgisutils. The below recreates the example from the README of arcgislayers.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">jsn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">json_reqs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>    <span class="st">"https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties_Generalized_Boundaries/FeatureServer/0/query?outFields=%2A&amp;where=1%3D1&amp;outSR=%7B%22wkid%22%3A4326%7D&amp;returnGeometry=TRUE&amp;token=&amp;f=json&amp;resultOffset=0"</span>,</span>
@@ -318,8 +381,7 @@
 <span>  <span class="va">reqs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">pbf_reqs</span>, <span class="fu">httr2</span><span class="fu">::</span><span class="va"><a href="https://httr2.r-lib.org/reference/request.html" class="external-link">request</a></span><span class="op">)</span></span>
 <span>  </span>
 <span>  <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">multi_req_perform</a></span><span class="op">(</span><span class="va">reqs</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu">multi_resp_process</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="reference/post_process_pbf.html">post_process_pbf</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="reference/httr2.html">multi_resp_body_pbf</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="fu">bench</span><span class="fu">::</span><span class="fu">mark</span><span class="op">(</span></span>
@@ -334,8 +396,8 @@
 <span><span class="co">#&gt; # A tibble: 2 × 6</span></span>
 <span><span class="co">#&gt;   expression   min median `itr/sec` mem_alloc `gc/sec`</span></span>
 <span><span class="co">#&gt;   &lt;bch:expr&gt; &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt; 1 jsn()       4.25   3.88      1         4.22      Inf</span></span>
-<span><span class="co">#&gt; 2 pbf()       1      1         3.84      1         NaN</span></span></code></pre></div>
+<span><span class="co">#&gt; 1 jsn()       3.75   3.02      1         3.94     3.95</span></span>
+<span><span class="co">#&gt; 2 pbf()       1      1         3.29      1        1</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="internals">Internals<a class="anchor" aria-label="anchor" href="#internals"></a>
@@ -343,7 +405,7 @@
 <p>Internally, there is a rust crate <a href="./src/rust/esripbf"><code>esripbf</code></a> which is a a Rust library built with <a href="https://github.com/tokio-rs/prost" class="external-link"><code>prost</code></a> to handle the <a href="https://github.com/Esri/arcgis-pbf/tree/main/proto/FeatureCollection" class="external-link">FeatureCollection Protocol Buffer Specification</a>.</p>
 </div>
 <div class="section level2">
-<h2 id="notes">Notes<a class="anchor" aria-label="anchor" href="#notes"></a>
+<h2 id="future-notes">Future Notes<a class="anchor" aria-label="anchor" href="#future-notes"></a>
 </h2>
 <p>Alternatively, it may make sense to write to a geoarrow array and convert to sfc using {wk}. These are just thoughts.</p>
 </div>
