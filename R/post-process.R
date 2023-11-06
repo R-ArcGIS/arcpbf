@@ -36,7 +36,11 @@ post_process_pbf <- function(x, use_sf = TRUE) {
   if (is.data.frame(x)) {
     x
   } else if (is.list(x) && !is.null(names(x))) {
-    post_process_single(x, use_sf)
+    x <- post_process_single(x, use_sf)
+    if (use_sf) {
+      x[[attr(x, "sf_column")]] <- sf::st_sfc(x[[attr(x, "sf_column")]])
+    }
+    x
   } else if (is.list(x) && is.null(names(x))) {
     post_process_list(x, use_sf)
   } else {
