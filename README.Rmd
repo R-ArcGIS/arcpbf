@@ -24,147 +24,177 @@ It is written in Rust and powered by the [extendr](https://github.com/extendr/ex
 
 arcpbf has functions for reading protocol buffer (pbf) results from an ArcGIS 
 REST API result. pbf results are returned when `f=pbf` in a [query](https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm). 
+
 The package is extremely lightweight and fast.
+
+Limitation: this package does not support Z and M dimensions at this point. 
 
 
 ## TL;DR 
 
 - `open_pbf()` will read a FeatureCollection `pbf` file into a raw vector
-- `read_pbf()` will read a FeatureCollection `pbf` file _and_ process it
+- `read_pbf()` will read a FeatureCollection `pbf` file _and_ process it with 
+- `resp_body_pbf()` and `multi_resp_body_pbf()` process `httr2_response` objects
+  with FeatureCollection pbf bodies
 - `process_pbf()` will process a raw vector or a list of raw vectors
-- `post_process_pbf()` will apply post processing steps to the results of `process_pbf()`
-  - set `use_sf = FALSE` to return a `data.frame` otherwise an `sf` object will be returned
-- `resp_body_pbf()` process an `httr2_response` as a pbf
-- `multi_resp_process()` processes a list of `httr2_response` using `process_pbf()`
-  - if an element is not a response or have a 200 status code, `NULL` is returned
-
+- `post_process_pbf()` will apply post processing steps to the results of 
+  `process_pbf()`
+  - set `use_sf = TRUE` to return an `sf` object if possible. Applied by 
+    default in `read_pbf()`, `resp_body_pbf()` and `multi_resp_body_pbf()`.
 
 > ***Developer Note***: Rust must be installed to compile the package. Run the one line 
 installation instructions at https://rustup.rs/. To verify your Rust installation
 is compatible, run `rextendr::rust_sitrep()`. That's it. 
 
+### PBF support
+
+Note that _only_ the FeatureCollection pbf specification is supported by arcpbf.
+If you want to process OSM pbf files use [`osmextract::oe_read()`](https://docs.ropensci.org/osmextract/reference/oe_read.html). 
+Or, if you want to create and read arbitrary protocol buffers directly in R,
+use [`RprotoBuf`](https://cran.r-project.org/web/packages/RProtoBuf).
+
 ## Basic usage 
 
-There are two ways of processing a FeatureCollection pbf. We either can read
-directly from a binary file (typically with a `.pbf` extension). Or, we process
-the a raw vector containing the binary of a pbf as returned by an http request. 
-These are accomplished with `read_pbf()` and `process_pbf()` respectively. 
 
-Here we read a single pbf file. 
+In most cases, we will be processing a protocol buffer directly from an http 
+request created with [`{httr2}`](https://httr2.r-lib.org/).
 
 ```{r}
 library(arcpbf)
 
-x <- read_pbf("inst/pbfs/pnts.pbf")
-str(x, 1)
+# specify url to sent our request to
+url <- "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=objectid&resultRecordCount=10&f=pbf&token="
+req <- httr2::request(url)
+resp <- httr2::req_perform(req)
+
+resp
 ```
-
-For pbf files containing geometries, we retrieve a list of 3 elements:
-
-- `attributes` is a `data.frame` of the fields of the FeatureCollection
-- `geometry` is a pseudo-sfc object (more on this later) which is a list of sfg geometry objects
-- `sr` is a named list of the spatial reference of the feature collection
-
-Whereas FeatureCollections _without geometries_ will always return a single data.frame.
+We can process request responses with `resp_body_pbf()`. Post-processing steps
+are applied by default. The arguments `post_process` and `use_sf` are `TRUE` by 
+default. 
 
 ```{r}
-read_pbf("inst/pbfs/small-table.pbf")
+resp_body_pbf(resp)
 ```
 
-These results use no external dependencies. If we want to convert the named list
-into a familiar sf object we will have to **post-process** it using 
-`post_process_pbf()`. The `use_sf` argument, which defaults to `TRUE`, will use 
-the `sf` package to return an `sf` object. 
+### Multiple response objects
+
+When running multiple requests in parallel using
+`httr2::multi_req_perform()` the responses are returned as a list of
+responses. `multi_resp_body_pbf()` processes the responses in a vectorized
+manner.
 
 ```{r}
-post_process_pbf(x)
-```
+# create a list of requests
+reqs <- replicate(5, req, simplify = FALSE)
+# perform them in parallel
+resps <- httr2::multi_req_perform(reqs)
 
-If it is set to `FALSE`, it will return a `data.frame`.
+# process the responses 
+multi_resp_body_pbf(resps)
+```
+### Reading from a file 
+
+In some cases you may have a file on disk that you want to process a pbf from. 
+Use `read_pbf()` to do so. Again, post-processing steps are applied by default. 
 
 ```{r}
-post_process_pbf(x, use_sf = FALSE)
+fp <- system.file("small-points.pbf", package = "arcpbf")
+read_pbf(fp)
 ```
-## Types of FeatureCollection results
 
-The FeatureCollection pbf can return three different types of results. They can
-be query results as above, or they can also be **count** or **Object ID** 
-results. 
 
-Counts will always return a scalar integer vector. 
+## FeatureCollection Result Types
+
+There are three types of PBF FeatureCollection responses that may be
+returned as a result of a [Feature Service Query request](https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm).
+
+- **Feature Results**:
+  - the default query response type. Contains individual features with their 
+    attributes and geometries if available.
+- **Count Result**:
+  - returned when `returnCountOnly=true` in an API request. Returned as a scalar
+    integer vector.
+- **Object ID Result**:
+  - returned when `returnIdsOnly=true`. A `data.frame` containing object IDs 
+    where the column name is set to the object ID field name of the feature 
+    service. 
+    
+### Feature Results
+
+Feature results can either omit geometry entirely, for example in the case of a
+Table or when the query parameter `returnGeometry=false`, or include it. When
+geometry is omitted entirely, the response is processed as a simple
+`data.frame`. However, if the response does contain geometry, the response is a 
+bit more complex.
+
+Unprocessed feature results with geometries return a named list with 3 elements:
+
+- `attributes`: 
+  - a `data.frame` of the fields and their values
+- `sr`: 
+  - a named list with elements `wkt`, `wkid`, `latest_wkid`, `vcs_wkid`,
+  and `latest_vcs_wkid`. These determine the coordinate reference system of the 
+  response as well as the vertical coordinate reference system. 
+- `geometry`: 
+  - an `sfc` object _**without a computed bounding box or coordinate reference 
+    system set**_ or a CRS set.
 
 ```{r}
-read_pbf("inst/pbfs/count.pbf")
+# read an example pbf without post-processing
+fc_fp <- system.file("small-points.pbf", package = "arcpbf")
+res <- read_pbf(fc_fp, post_process = FALSE)
+
+res
 ```
 
-Whereas the Object ID result type will return a `data.frame` with a single column.
-The column name is the name of the object ID field and the values are the 
-object IDs as a numeric vector. 
+When post-processing is applied to a geometry Feature Result, the CRS is set
+and the bounding box is computed. This requires the `sf` package to be available. 
 
 ```{r}
-ids <- read_pbf("inst/pbfs/ids.pbf")
-head(ids)
+post_process_pbf(res)
 ```
 
-## Reading from a raw vector
 
-The `open_pbf()` function will read a pbf file into a raw vector which can be 
+## Lower level functions
+
+The function `open_pbf()` will read a pbf file into a raw vector which can be 
 passed to `process_pbf()`. In general you will not need this function, but it 
 is handy for the sake of example. 
 
 ```{r}
-pbf_raw <- open_pbf("inst/pbfs/big-pnts.pbf")
+pbf_raw <- open_pbf(fc_fp)
 head(pbf_raw, 20)
 ```
 
-This raw vector can be turned into an R object using `process_pbf()`.
+This raw vector can be turned into an R object using `process_pbf()`. The output
+_will not_ be post processed.
 
 ```{r}
 res <- process_pbf(pbf_raw)
-str(res, 1)
+res
 ```
 
-## Processing requests 
-
-The true purpose of this package is to process requests from the REST API. Here
-we process a single request using [`{httr2}`](https://httr2.r-lib.org/)
+Post-processing can be applied to the result of `process_pbf()` using
+`post_process_pbf()`.
 
 ```{r}
-url <- "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=objectid&f=pbf&token="
-
-resp <- httr2::request(url) |> 
-  httr2::req_perform() |> 
-  httr2::resp_body_raw()
-
-x <- process_pbf(resp)
+post_process_pbf(res)
 ```
 
-In developing an R package, one may be creating multiple requests in parallel using `httr2::multi_req_perform()` as is done in [`{arcgislayers}`](https://github.com/R-ArcGIS/arcgislayers).
+`post_process_pbf()` can also be applied to a list of processed pbf responses.
 
 ```{r}
-reqs <- replicate(5, httr2::request(url), simplify = FALSE)
+multi_res <- list(res, res, res)
 
-resps <- httr2::multi_req_perform(reqs)
+post_process_pbf(multi_res)
 ```
 
-We can process all of the responses using `multi_resp_process()` and pass the results to `post_process_pbf()`.
-
-Note that when post processing a list of responses, `data.table::rbindlist()` will be used to bind
-the results together. If data.table is not available, `dplyr::bind_rows()` will be used. If dplyr
-is not available, rows will be bound together using `do.call(rbind.data.frame, x)`. 
-
-```{r}
-res <- multi_resp_process(resps) |> 
-  post_process_pbf()
-
-head(res)
-```
 
 ## Benchmarking
 
 Below is a bench mark that compares processing pbfs to the current approach of processing 
-raw json in arcgislayers and arcgisutils. The below recreates the example from the README of
-arcgislayers. 
+raw json in arcgislayers and arcgisutils. The below recreates the example from the README of arcgislayers. 
 
 ```{r}
 jsn <- function() {
@@ -192,8 +222,7 @@ pbf <- function() {
   reqs <- lapply(pbf_reqs, httr2::request)
   
   httr2::multi_req_perform(reqs) |> 
-    multi_resp_process() |> 
-    post_process_pbf()
+    multi_resp_body_pbf()
 }
 
 bench::mark(
@@ -212,7 +241,7 @@ Internally, there is a rust crate [`esripbf`](./src/rust/esripbf) which is a
 a Rust library built with [`prost`](https://github.com/tokio-rs/prost) to handle the [FeatureCollection Protocol Buffer Specification](https://github.com/Esri/arcgis-pbf/tree/main/proto/FeatureCollection).
 
 
-## Notes
+## Future Notes
 
 Alternatively, it may make sense to write to a geoarrow array and convert to sfc 
 using {wk}. These are just thoughts. 
