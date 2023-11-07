@@ -11,3 +11,6 @@
 ^src/rust/vendor/*$
 ^src/vendor/*$
 ^\.github$
+^CRAN-SUBMISSION$
+^cran-comments\.md$
+^README.*
