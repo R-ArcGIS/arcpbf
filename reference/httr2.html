@@ -107,18 +107,35 @@ and will result in an error if used with these functions.</p>
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/is_installed.html" class="external-link">is_installed</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"httr2"</span>, <span class="st">"sf"</span><span class="op">)</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/interactive.html" class="external-link">interactive</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">base_url</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="st">"https://services.arcgis.com/P3ePLMYs2RVChkJx"</span>,</span></span>
+<span class="r-in"><span>    <span class="st">"arcgis"</span>, <span class="st">"rest"</span>, <span class="st">"services"</span>,</span></span>
+<span class="r-in"><span>    <span class="st">"ACS_Population_by_Race_and_Hispanic_Origin_Boundaries"</span>,</span></span>
+<span class="r-in"><span>    <span class="st">"FeatureServer"</span>, <span class="st">"2"</span>, <span class="st">"query"</span>, fsep <span class="op">=</span> <span class="st">"/"</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span>  <span class="co"># single responses</span></span></span>
-<span class="r-in"><span>  <span class="va">url</span> <span class="op">&lt;-</span> <span class="st">"https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&amp;outFields=objectid&amp;resultRecordCount=10&amp;f=pbf&amp;token="</span></span></span>
+<span class="r-in"><span>  <span class="co"># create the base request</span></span></span>
+<span class="r-in"><span>  <span class="va">req</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/request.html" class="external-link">request</a></span><span class="op">(</span><span class="va">base_url</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span>  <span class="va">req</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/request.html" class="external-link">request</a></span><span class="op">(</span><span class="va">url</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="co"># fill query parameters</span></span></span>
+<span class="r-in"><span>  <span class="va">req</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/req_url.html" class="external-link">req_url_query</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="va">req</span>,</span></span>
+<span class="r-in"><span>    where <span class="op">=</span> <span class="st">"1=1"</span>,</span></span>
+<span class="r-in"><span>    outFeilds <span class="op">=</span> <span class="st">"objectid"</span>,</span></span>
+<span class="r-in"><span>    resultRecordCount <span class="op">=</span> <span class="fl">1</span>,</span></span>
+<span class="r-in"><span>    f <span class="op">=</span> <span class="st">"pbf"</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span>  <span class="co"># make the request</span></span></span>
 <span class="r-in"><span>  <span class="va">resp</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/req_perform.html" class="external-link">req_perform</a></span><span class="op">(</span><span class="va">req</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span>  <span class="co"># parse the request</span></span></span>
 <span class="r-in"><span>  <span class="fu">resp_body_pbf</span><span class="op">(</span><span class="va">resp</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span>  <span class="co"># multi-req processing</span></span></span>
-<span class="r-in"><span>  <span class="va">url</span> <span class="op">&lt;-</span> <span class="st">"https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&amp;outFields=objectId&amp;resultRecordCount=3&amp;f=pbf&amp;token="</span></span></span>
-<span class="r-in"><span>  <span class="va">reqs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/request.html" class="external-link">request</a></span><span class="op">(</span><span class="va">url</span><span class="op">)</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="va">resps</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">multi_req_perform</a></span><span class="op">(</span><span class="va">reqs</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="co"># simulate response from multi_req_perform</span></span></span>
+<span class="r-in"><span>  <span class="va">resps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">resp</span>, <span class="va">resp</span>, <span class="va">resp</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span>  <span class="co"># process them all at once</span></span></span>
 <span class="r-in"><span>  <span class="fu">multi_resp_body_pbf</span><span class="op">(</span><span class="va">resps</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
