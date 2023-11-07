@@ -20,6 +20,10 @@ pbf body.}
 \item{resps}{a list of \code{httr2_response} objects such as
 created by \code{httr2::multi_req_perform()}}
 }
+\value{
+A processed FeatureCollection pbf. Either a scalar integer, named list,
+data.frame, or an sf object if post-processing is applied.
+}
 \description{
 Processes \code{httr2_response} objects that return FeatureCollection PBFs.
 }

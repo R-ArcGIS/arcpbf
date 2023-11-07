@@ -28,10 +28,17 @@
 #'
 #' @param resps a list of `httr2_response` objects such as
 #'   created by `httr2::multi_req_perform()`
+#'
 #' @param post_process default `TRUE`. Apply `post_process_pbf()` to the
 #'   pbf body.
 #' @inheritParams httr2::resp_body_raw
 #' @inheritParams post_process_pbf
+#'
+#' @returns
+#'
+#' A processed FeatureCollection pbf. Either a scalar integer, named list,
+#' data.frame, or an sf object if post-processing is applied.
+#'
 #' @export
 #' @examples
 #'
