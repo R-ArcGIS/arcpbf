@@ -34,4 +34,4 @@ C_clean:
 	rm -Rf $(SHLIB) $(STATLIB) $(OBJECTS) $(CARGOTMP) $(VENDOR_DIR)
 
 clean:
-	rm -Rf $(SHLIB) $(STATLIB) $(OBJECTS) $(CARGOTMP) $(VENDOR_DIR) ./rust/target
+	rm -Rf $(SHLIB) $(STATLIB) $(OBJECTS) $(CARGOTMP) $(VENDOR_DIR) $(TARGET_DIR)
