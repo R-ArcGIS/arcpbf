@@ -53,18 +53,35 @@ and will result in an error if used with these functions.
 \examples{
 
 if (rlang::is_installed(c("httr2", "sf")) && interactive()) {
+  base_url <- file.path(
+    "https://services.arcgis.com/P3ePLMYs2RVChkJx",
+    "arcgis", "rest", "services",
+    "ACS_Population_by_Race_and_Hispanic_Origin_Boundaries",
+    "FeatureServer", "2", "query", fsep = "/"
+  )
 
-  # single responses
-  url <- "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=objectid&resultRecordCount=10&f=pbf&token="
+  # create the base request
+  req <- httr2::request(base_url)
 
-  req <- httr2::request(url)
+  # fill query parameters
+  req <- httr2::req_url_query(
+    req,
+    where = "1=1",
+    outFeilds = "objectid",
+    resultRecordCount = 1,
+    f = "pbf"
+  )
+
+  # make the request
   resp <- httr2::req_perform(req)
+
+  # parse the request
   resp_body_pbf(resp)
 
-  # multi-req processing
-  url <- "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=objectId&resultRecordCount=3&f=pbf&token="
-  reqs <- replicate(5, httr2::request(url), simplify = FALSE)
-  resps <- httr2::multi_req_perform(reqs)
+  # simulate response from multi_req_perform
+  resps <- list(resp, resp, resp)
+
+  # process them all at once
   multi_resp_body_pbf(resps)
 }
 }
