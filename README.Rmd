@@ -3,7 +3,7 @@ output: github_document
 ---
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/JosiahParry/arcpbf/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/JosiahParry/arcpbf/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/R-ArcGIS/arcpbf/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/R-ArcGIS/arcpbf/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 ```{r, include = FALSE}

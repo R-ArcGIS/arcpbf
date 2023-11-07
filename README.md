@@ -1,7 +1,7 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/JosiahParry/arcpbf/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/JosiahParry/arcpbf/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/R-ArcGIS/arcpbf/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/R-ArcGIS/arcpbf/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 # arcpbf
@@ -373,8 +373,8 @@ bench::mark(
 #> # A tibble: 2 × 6
 #>   expression   min median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <dbl>  <dbl>     <dbl>     <dbl>    <dbl>
-#> 1 jsn()       3.75   3.02      1         3.94     3.95
-#> 2 pbf()       1      1         3.29      1        1
+#> 1 jsn()       3.56   4.30      1         3.94     4.35
+#> 2 pbf()       1      1         2.99      1        1
 ```
 
 ## Internals
