@@ -7,7 +7,7 @@ Authors@R:
 Description: Fast processing of ArcGIS FeatureCollection protocol buffers in R.
   It is designed to work seamlessly with 'httr2' and integrates with 'sf'. 
 License: Apache License (>= 2)
-URL: https://r.esri.com/arcpbf, https://github.com/R-ArcGIS/arcpbf
+URL: https://r.esri.com/arcpbf/, https://github.com/R-ArcGIS/arcpbf
 BugReports: https://github.com/R-ArcGIS/arcpbf/issues
 Encoding: UTF-8
 Language: en
