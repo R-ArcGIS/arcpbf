@@ -4,12 +4,11 @@ Version: 0.1.0
 Authors@R: 
     person("Josiah", "Parry", , "josiah.parry@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-9910-865X"))
-Description: The ArcGIS Protocol Buffer FeatureCollection specification encodes 
-  geographic and attribute data using Google's protocol buffer (pbf) specification. 
-  Modern ArcGIS REST endpoints can return pbfs which are smaller and faster to 
-  consume. arcpbf processes FeatureCollection pbfs and returns the results as R
-  objects including data.frames and simple feature collections. 
+Description: Fast processing of ArcGIS FeatureCollection protocol buffers in R.
+  It is designed to work seamlessly with 'httr2' and integrates with 'sf'. 
 License: Apache License (>= 2)
+URL: https://r.esri.com/arcpbf, https://github.com/R-ArcGIS/arcpbf
+BugReports: https://github.com/R-ArcGIS/arcpbf/issues
 Encoding: UTF-8
 Language: en
 Roxygen: list(markdown = TRUE)
