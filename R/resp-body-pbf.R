@@ -13,7 +13,7 @@
 #'
 #' When running multiple requests in parallel using
 #' [`httr2::multi_req_perform()`] the responses are returned as a list of
-#' responses. `multi_resp_body_pbf()` processes the responses in a vectorized
+#' responses. `resps_data_pbf()` processes the responses in a vectorized
 #' manner.
 #'
 #' Results are post-processed by default and return sf objects if applicable.
@@ -73,7 +73,7 @@
 #'   resps <- list(resp, resp, resp)
 #'
 #'   # process them all at once
-#'   multi_resp_body_pbf(resps)
+#'   resps_data_pbf(resps)
 #' }
 #' @rdname httr2
 resp_body_pbf <- function(resp, post_process = TRUE, use_sf = TRUE) {
@@ -100,7 +100,7 @@ resp_body_pbf <- function(resp, post_process = TRUE, use_sf = TRUE) {
 
 #' @export
 #' @rdname httr2
-multi_resp_body_pbf <- function(resps, post_process = TRUE, use_sf = TRUE) {
+resps_data_pbf <- function(resps, post_process = TRUE, use_sf = TRUE) {
   res <- multi_resp_process_(resps)
 
   if (post_process) {

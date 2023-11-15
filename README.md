@@ -27,14 +27,14 @@ point.
   vector
 - `read_pbf()` will read a FeatureCollection `pbf` file *and* process it
   with
-- `resp_body_pbf()` and `multi_resp_body_pbf()` process `httr2_response`
+- `resp_body_pbf()` and `resps_data_pbf()` process `httr2_response`
   objects with FeatureCollection pbf bodies
 - `process_pbf()` will process a raw vector or a list of raw vectors
 - `post_process_pbf()` will apply post processing steps to the results
   of `process_pbf()`
   - set `use_sf = TRUE` to return an `sf` object if possible. Applied by
     default in `read_pbf()`, `resp_body_pbf()` and
-    `multi_resp_body_pbf()`.
+    `resps_data_pbf()`.
 
 > ***Developer Note***: Rust must be installed to compile the package.
 > Run the one line installation instructions at <https://rustup.rs/>. To
@@ -100,7 +100,7 @@ resp_body_pbf(resp)
 
 When running multiple requests in parallel using
 `httr2::multi_req_perform()` the responses are returned as a list of
-responses. `multi_resp_body_pbf()` processes the responses in a
+responses. `resps_data_pbf()` processes the responses in a
 vectorized manner.
 
 ``` r
@@ -110,7 +110,7 @@ reqs <- replicate(5, req, simplify = FALSE)
 resps <- httr2::multi_req_perform(reqs)
 
 # process the responses 
-multi_resp_body_pbf(resps)
+resps_data_pbf(resps)
 #> Simple feature collection with 50 features and 1 field
 #> Geometry type: POLYGON
 #> Dimension:     XY
@@ -358,7 +358,7 @@ pbf <- function() {
   reqs <- lapply(pbf_reqs, httr2::request)
   
   httr2::multi_req_perform(reqs) |> 
-    multi_resp_body_pbf()
+    resps_data_pbf()
 }
 
 bench::mark(

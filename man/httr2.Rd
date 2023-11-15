@@ -2,12 +2,12 @@
 % Please edit documentation in R/resp-body-pbf.R
 \name{resp_body_pbf}
 \alias{resp_body_pbf}
-\alias{multi_resp_body_pbf}
+\alias{resps_data_pbf}
 \title{Extract PBFs from httr2_response objects}
 \usage{
 resp_body_pbf(resp, post_process = TRUE, use_sf = TRUE)
 
-multi_resp_body_pbf(resps, post_process = TRUE, use_sf = TRUE)
+resps_data_pbf(resps, post_process = TRUE, use_sf = TRUE)
 }
 \arguments{
 \item{resp}{A response object.}
@@ -36,7 +36,7 @@ protocol buffer.
 
 When running multiple requests in parallel using
 \code{\link[httr2:multi_req_perform]{httr2::multi_req_perform()}} the responses are returned as a list of
-responses. \code{multi_resp_body_pbf()} processes the responses in a vectorized
+responses. \code{resps_data_pbf()} processes the responses in a vectorized
 manner.
 
 Results are post-processed by default and return sf objects if applicable.
@@ -82,6 +82,6 @@ if (rlang::is_installed(c("httr2", "sf")) && interactive()) {
   resps <- list(resp, resp, resp)
 
   # process them all at once
-  multi_resp_body_pbf(resps)
+  resps_data_pbf(resps)
 }
 }
