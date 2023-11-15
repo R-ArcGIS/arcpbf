@@ -12,6 +12,11 @@ use core::ops::Range;
 // Processes a scalar geometry feature
 // TODO do not unwrap `x`
 pub fn read_poly(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scale) -> List {
+
+    // if none return an empty list
+    if x.is_none() {
+        return list!();
+    }
     let geoms = match x.unwrap() {
         CompressedGeometry::Geometry(g) => g,
         CompressedGeometry::ShapeBuffer(_) => todo!(),
