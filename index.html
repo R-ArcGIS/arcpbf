@@ -34,7 +34,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">arcpbf</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.1</span>
       </span>
     </div>
 
@@ -84,13 +84,13 @@
 <li>
 <code><a href="reference/read_pbf.html">read_pbf()</a></code> will read a FeatureCollection <code>pbf</code> file <em>and</em> process it with</li>
 <li>
-<code><a href="reference/httr2.html">resp_body_pbf()</a></code> and <code><a href="reference/httr2.html">multi_resp_body_pbf()</a></code> process <code>httr2_response</code> objects with FeatureCollection pbf bodies</li>
+<code><a href="reference/httr2.html">resp_body_pbf()</a></code> and <code><a href="reference/httr2.html">resps_data_pbf()</a></code> process <code>httr2_response</code> objects with FeatureCollection pbf bodies</li>
 <li>
 <code><a href="reference/process_pbf.html">process_pbf()</a></code> will process a raw vector or a list of raw vectors</li>
 <li>
 <code><a href="reference/post_process_pbf.html">post_process_pbf()</a></code> will apply post processing steps to the results of <code><a href="reference/process_pbf.html">process_pbf()</a></code>
 <ul>
-<li>set <code>use_sf = TRUE</code> to return an <code>sf</code> object if possible. Applied by default in <code><a href="reference/read_pbf.html">read_pbf()</a></code>, <code><a href="reference/httr2.html">resp_body_pbf()</a></code> and <code><a href="reference/httr2.html">multi_resp_body_pbf()</a></code>.</li>
+<li>set <code>use_sf = TRUE</code> to return an <code>sf</code> object if possible. Applied by default in <code><a href="reference/read_pbf.html">read_pbf()</a></code>, <code><a href="reference/httr2.html">resp_body_pbf()</a></code> and <code><a href="reference/httr2.html">resps_data_pbf()</a></code>.</li>
 </ul>
 </li>
 </ul>
@@ -144,7 +144,7 @@
 <div class="section level3">
 <h3 id="multiple-response-objects">Multiple response objects<a class="anchor" aria-label="anchor" href="#multiple-response-objects"></a>
 </h3>
-<p>When running multiple requests in parallel using <code><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">httr2::multi_req_perform()</a></code> the responses are returned as a list of responses. <code><a href="reference/httr2.html">multi_resp_body_pbf()</a></code> processes the responses in a vectorized manner.</p>
+<p>When running multiple requests in parallel using <code><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">httr2::multi_req_perform()</a></code> the responses are returned as a list of responses. <code><a href="reference/httr2.html">resps_data_pbf()</a></code> processes the responses in a vectorized manner.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># create a list of requests</span></span>
 <span><span class="va">reqs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">5</span>, <span class="va">req</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
@@ -152,7 +152,7 @@
 <span><span class="va">resps</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">multi_req_perform</a></span><span class="op">(</span><span class="va">reqs</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># process the responses </span></span>
-<span><span class="fu"><a href="reference/httr2.html">multi_resp_body_pbf</a></span><span class="op">(</span><span class="va">resps</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/httr2.html">resps_data_pbf</a></span><span class="op">(</span><span class="va">resps</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Simple feature collection with 50 features and 1 field</span></span>
 <span><span class="co">#&gt; Geometry type: POLYGON</span></span>
 <span><span class="co">#&gt; Dimension:     XY</span></span>
@@ -385,7 +385,7 @@
 <span>  <span class="va">reqs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">pbf_reqs</span>, <span class="fu">httr2</span><span class="fu">::</span><span class="va"><a href="https://httr2.r-lib.org/reference/request.html" class="external-link">request</a></span><span class="op">)</span></span>
 <span>  </span>
 <span>  <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">multi_req_perform</a></span><span class="op">(</span><span class="va">reqs</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="reference/httr2.html">multi_resp_body_pbf</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="reference/httr2.html">resps_data_pbf</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="fu">bench</span><span class="fu">::</span><span class="fu">mark</span><span class="op">(</span></span>
@@ -421,6 +421,7 @@
     <div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
+<li><a href="https://cloud.r-project.org/package=arcpbf" class="external-link">View on CRAN</a></li>
 <li><a href="https://github.com/R-ArcGIS/arcpbf/" class="external-link">Browse source code</a></li>
 <li><a href="https://github.com/R-ArcGIS/arcpbf/issues" class="external-link">Report a bug</a></li>
 </ul>

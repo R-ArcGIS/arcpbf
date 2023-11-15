@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">arcpbf</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.1</span>
       </span>
     </div>
 
@@ -55,7 +55,7 @@
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">resp_body_pbf</span><span class="op">(</span><span class="va">resp</span>, post_process <span class="op">=</span> <span class="cn">TRUE</span>, use_sf <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">multi_resp_body_pbf</span><span class="op">(</span><span class="va">resps</span>, post_process <span class="op">=</span> <span class="cn">TRUE</span>, use_sf <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">resps_data_pbf</span><span class="op">(</span><span class="va">resps</span>, post_process <span class="op">=</span> <span class="cn">TRUE</span>, use_sf <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -96,7 +96,7 @@ protocol buffer.</p><div class="section">
 
 <p>When running multiple requests in parallel using
 <code><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">httr2::multi_req_perform()</a></code> the responses are returned as a list of
-responses. <code>multi_resp_body_pbf()</code> processes the responses in a vectorized
+responses. <code>resps_data_pbf()</code> processes the responses in a vectorized
 manner.</p>
 <p>Results are post-processed by default and return sf objects if applicable.
 This may not be desirable if heterogeneous response types are expected. For
@@ -142,7 +142,7 @@ and will result in an error if used with these functions.</p>
 <span class="r-in"><span>  <span class="va">resps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">resp</span>, <span class="va">resp</span>, <span class="va">resp</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="co"># process them all at once</span></span></span>
-<span class="r-in"><span>  <span class="fu">multi_resp_body_pbf</span><span class="op">(</span><span class="va">resps</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu">resps_data_pbf</span><span class="op">(</span><span class="va">resps</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
