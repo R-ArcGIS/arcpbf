@@ -45,7 +45,8 @@ mock_resp <- function(body) {
   resp
 }
 
-test_that("list of response tables", {
+# WITH POST PROCESSING
+test_that("post process of response tables", {
 
   skip_on_cran()
   skip_if_not_installed(c("httr2", "sf"))
@@ -60,7 +61,7 @@ test_that("list of response tables", {
 
 })
 
-test_that("test list of feature classes", {
+test_that("post process list of feature classes", {
 
   skip_on_cran()
   skip_if_not_installed(c("httr2", "sf"))
@@ -76,7 +77,7 @@ test_that("test list of feature classes", {
 
 })
 
-test_that("test list of OIDs", {
+test_that("post process list of OIDs", {
 
   skip_on_cran()
   skip_if_not_installed(c("httr2"))
@@ -93,7 +94,70 @@ test_that("test list of OIDs", {
 })
 
 
-test_that("test list of counts", {
+test_that("post process list of counts", {
+
+  skip_on_cran()
+  skip_if_not_installed(c("httr2"))
+
+  tbl_fp <- system.file("count.pbf", package = "arcpbf")
+
+  body <- open_pbf(tbl_fp)
+  resp <- mock_resp(body)
+
+  resps <- list(resp, resp, resp)
+  expect_snapshot(resps_data_pbf(resps))
+
+})
+
+
+# WITHOUT POST PROCESSING
+test_that("DO NOT post process of response tables", {
+
+  skip_on_cran()
+  skip_if_not_installed(c("httr2", "sf"))
+
+  tbl_fp <- system.file("small-table.pbf", package = "arcpbf")
+
+  body <- open_pbf(tbl_fp)
+  resp <- mock_resp(body)
+
+  resps <- list(resp, resp, resp)
+  expect_snapshot(resps_data_pbf(resps, FALSE))
+
+})
+
+test_that("DO NOT post process list of feature classes", {
+
+  skip_on_cran()
+  skip_if_not_installed(c("httr2", "sf"))
+
+  tbl_fp <- system.file("small-points.pbf", package = "arcpbf")
+
+  body <- open_pbf(tbl_fp)
+  resp <- mock_resp(body)
+
+  resps <- list(resp, resp, resp)
+  expect_snapshot(resps_data_pbf(resps, FALSE))
+
+})
+
+test_that("DO NOT post process list of OIDs", {
+
+  skip_on_cran()
+  skip_if_not_installed(c("httr2"))
+
+  tbl_fp <- system.file("ids.pbf", package = "arcpbf")
+
+  body <- open_pbf(tbl_fp)
+  resp <- mock_resp(body)
+
+
+  resps <- list(resp, resp, resp)
+  expect_snapshot(resps_data_pbf(resps, FALSE))
+
+})
+
+test_that("DO NOT post process list of counts", {
 
   skip_on_cran()
   skip_if_not_installed(c("httr2"))
