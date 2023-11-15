@@ -140,7 +140,7 @@
       Dimension:     XY
       Bounding box:  xmin: NA ymin: NA xmax: NA ymax: NA
       CRS:           NA
-    Message <simpleMessage>
+    Message
       POLYGON ((-17264972 2244291, -17264988 2244297,...
       POLYGON ((-17264972 2244291, -17264967 2244286,...
     Output
@@ -175,7 +175,7 @@
       Dimension:     XY
       Bounding box:  xmin: NA ymin: NA xmax: NA ymax: NA
       CRS:           NA
-    Message <simpleMessage>
+    Message
       POLYGON ((-17264972 2244291, -17264988 2244297,...
       POLYGON ((-17264972 2244291, -17264967 2244286,...
     Output
@@ -210,7 +210,7 @@
       Dimension:     XY
       Bounding box:  xmin: NA ymin: NA xmax: NA ymax: NA
       CRS:           NA
-    Message <simpleMessage>
+    Message
       POLYGON ((-17264972 2244291, -17264988 2244297,...
       POLYGON ((-17264972 2244291, -17264967 2244286,...
     Output
