@@ -75,7 +75,7 @@ pbf body.</p></dd>
 
 <dt>resps</dt>
 <dd><p>a list of <code>httr2_response</code> objects such as
-created by <code><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">httr2::multi_req_perform()</a></code></p></dd>
+created by <code><a href="https://httr2.r-lib.org/reference/req_perform_parallel.html" class="external-link">httr2::req_perform_parallel()</a></code></p></dd>
 
 </dl></div>
     <div id="value">
@@ -95,7 +95,7 @@ protocol buffer.</p><div class="section">
 
 
 <p>When running multiple requests in parallel using
-<code><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">httr2::multi_req_perform()</a></code> the responses are returned as a list of
+<code><a href="https://httr2.r-lib.org/reference/req_perform_parallel.html" class="external-link">httr2::req_perform_parallel()</a></code> the responses are returned as a list of
 responses. <code>resps_data_pbf()</code> processes the responses in a vectorized
 manner.</p>
 <p>Results are post-processed by default and return sf objects if applicable.

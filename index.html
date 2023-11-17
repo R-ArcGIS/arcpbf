@@ -144,12 +144,14 @@
 <div class="section level3">
 <h3 id="multiple-response-objects">Multiple response objects<a class="anchor" aria-label="anchor" href="#multiple-response-objects"></a>
 </h3>
-<p>When running multiple requests in parallel using <code><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">httr2::multi_req_perform()</a></code> the responses are returned as a list of responses. <code><a href="reference/httr2.html">resps_data_pbf()</a></code> processes the responses in a vectorized manner.</p>
+<p>When running multiple requests in parallel using <code><a href="https://httr2.r-lib.org/reference/req_perform_parallel.html" class="external-link">httr2::req_perform_parallel()</a></code> the responses are returned as a list of responses. <code><a href="reference/httr2.html">resps_data_pbf()</a></code> processes the responses in a vectorized manner.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># create a list of requests</span></span>
 <span><span class="va">reqs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">5</span>, <span class="va">req</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co"># perform them in parallel</span></span>
-<span><span class="va">resps</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">multi_req_perform</a></span><span class="op">(</span><span class="va">reqs</span><span class="op">)</span></span>
+<span><span class="va">resps</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/req_perform_parallel.html" class="external-link">req_perform_parallel</a></span><span class="op">(</span><span class="va">reqs</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Iterating ■■■■■■■ 20% | ETA: 7sIterating ■■■■■■■■■■■■■ 40% | ETA: 6sIterating</span></span>
+<span><span class="co">#&gt; ■■■■■■■■■■■■■■■■■■■■■■■■■ 80% | ETA: 1s</span></span>
 <span></span>
 <span><span class="co"># process the responses </span></span>
 <span><span class="fu"><a href="reference/httr2.html">resps_data_pbf</a></span><span class="op">(</span><span class="va">resps</span><span class="op">)</span></span>
@@ -367,7 +369,7 @@
 <span>  <span class="op">)</span></span>
 <span>  <span class="va">reqs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">json_reqs</span>, <span class="fu">httr2</span><span class="fu">::</span><span class="va"><a href="https://httr2.r-lib.org/reference/request.html" class="external-link">request</a></span><span class="op">)</span> </span>
 <span>  </span>
-<span>  <span class="va">resps</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">multi_req_perform</a></span><span class="op">(</span><span class="va">reqs</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="va">resps</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/req_perform_parallel.html" class="external-link">req_perform_parallel</a></span><span class="op">(</span><span class="va">reqs</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">arcgisutils</span><span class="fu">::</span><span class="fu">parse_esri_json</span><span class="op">(</span><span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/resp_body_raw.html" class="external-link">resp_body_string</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> </span>
 <span>  </span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind.data.frame</span>, <span class="va">resps</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -384,7 +386,7 @@
 <span>  </span>
 <span>  <span class="va">reqs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">pbf_reqs</span>, <span class="fu">httr2</span><span class="fu">::</span><span class="va"><a href="https://httr2.r-lib.org/reference/request.html" class="external-link">request</a></span><span class="op">)</span></span>
 <span>  </span>
-<span>  <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/multi_req_perform.html" class="external-link">multi_req_perform</a></span><span class="op">(</span><span class="va">reqs</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/req_perform_parallel.html" class="external-link">req_perform_parallel</a></span><span class="op">(</span><span class="va">reqs</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="reference/httr2.html">resps_data_pbf</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
@@ -395,13 +397,15 @@
 <span>  relative <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  iterations <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; Iterating ■■■■■■■■■■■■■■■■                  50% | ETA:  1s                                                           Iterating ■■■■■■■■■■■■■■■■                  50% | ETA:  1s</span></span>
+<span><span class="co">#&gt; Iterating ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  100% | ETA:  0s</span></span>
 <span><span class="co">#&gt; Warning: Some expressions had a GC in every iteration; so filtering is</span></span>
 <span><span class="co">#&gt; disabled.</span></span>
 <span><span class="co">#&gt; # A tibble: 2 × 6</span></span>
 <span><span class="co">#&gt;   expression   min median `itr/sec` mem_alloc `gc/sec`</span></span>
 <span><span class="co">#&gt;   &lt;bch:expr&gt; &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt; 1 jsn()       3.56   4.30      1         3.94     4.35</span></span>
-<span><span class="co">#&gt; 2 pbf()       1      1         2.99      1        1</span></span></code></pre></div>
+<span><span class="co">#&gt; 1 jsn()       3.06   3.27      1         3.94     1.39</span></span>
+<span><span class="co">#&gt; 2 pbf()       1      1         3.94      1        1</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="internals">Internals<a class="anchor" aria-label="anchor" href="#internals"></a>
