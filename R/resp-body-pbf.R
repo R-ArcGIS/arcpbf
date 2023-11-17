@@ -12,7 +12,7 @@
 #' ### Lists of responses
 #'
 #' When running multiple requests in parallel using
-#' [`httr2::multi_req_perform()`] the responses are returned as a list of
+#' [`httr2::req_perform_parallel()`] the responses are returned as a list of
 #' responses. `resps_data_pbf()` processes the responses in a vectorized
 #' manner.
 #'
@@ -27,7 +27,7 @@
 #' and will result in an error if used with these functions.
 #'
 #' @param resps a list of `httr2_response` objects such as
-#'   created by `httr2::multi_req_perform()`
+#'   created by `httr2::req_perform_parallel()`
 #'
 #' @param post_process default `TRUE`. Apply `post_process_pbf()` to the
 #'   pbf body.

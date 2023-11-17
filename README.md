@@ -33,8 +33,7 @@ point.
 - `post_process_pbf()` will apply post processing steps to the results
   of `process_pbf()`
   - set `use_sf = TRUE` to return an `sf` object if possible. Applied by
-    default in `read_pbf()`, `resp_body_pbf()` and
-    `resps_data_pbf()`.
+    default in `read_pbf()`, `resp_body_pbf()` and `resps_data_pbf()`.
 
 > ***Developer Note***: Rust must be installed to compile the package.
 > Run the one line installation instructions at <https://rustup.rs/>. To
@@ -99,15 +98,17 @@ resp_body_pbf(resp)
 ### Multiple response objects
 
 When running multiple requests in parallel using
-`httr2::multi_req_perform()` the responses are returned as a list of
-responses. `resps_data_pbf()` processes the responses in a
-vectorized manner.
+`httr2::req_perform_parallel()` the responses are returned as a list of
+responses. `resps_data_pbf()` processes the responses in a vectorized
+manner.
 
 ``` r
 # create a list of requests
 reqs <- replicate(5, req, simplify = FALSE)
 # perform them in parallel
-resps <- httr2::multi_req_perform(reqs)
+resps <- httr2::req_perform_parallel(reqs)
+#> Iterating ■■■■■■■ 20% | ETA: 7sIterating ■■■■■■■■■■■■■ 40% | ETA: 6sIterating
+#> ■■■■■■■■■■■■■■■■■■■■■■■■■ 80% | ETA: 1s
 
 # process the responses 
 resps_data_pbf(resps)
@@ -340,7 +341,7 @@ jsn <- function() {
   )
   reqs <- lapply(json_reqs, httr2::request) 
   
-  resps <- httr2::multi_req_perform(reqs) |> 
+  resps <- httr2::req_perform_parallel(reqs) |> 
     lapply(function(x) arcgisutils::parse_esri_json(httr2::resp_body_string(x))) 
   
   do.call(rbind.data.frame, resps) |> 
@@ -357,7 +358,7 @@ pbf <- function() {
   
   reqs <- lapply(pbf_reqs, httr2::request)
   
-  httr2::multi_req_perform(reqs) |> 
+  httr2::req_perform_parallel(reqs) |> 
     resps_data_pbf()
 }
 
@@ -368,13 +369,15 @@ bench::mark(
   relative = TRUE,
   iterations = 5
 )
+#> Iterating ■■■■■■■■■■■■■■■■                  50% | ETA:  1s                                                           Iterating ■■■■■■■■■■■■■■■■                  50% | ETA:  1s
+#> Iterating ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  100% | ETA:  0s
 #> Warning: Some expressions had a GC in every iteration; so filtering is
 #> disabled.
 #> # A tibble: 2 × 6
 #>   expression   min median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <dbl>  <dbl>     <dbl>     <dbl>    <dbl>
-#> 1 jsn()       3.56   4.30      1         3.94     4.35
-#> 2 pbf()       1      1         2.99      1        1
+#> 1 jsn()       3.06   3.27      1         3.94     1.39
+#> 2 pbf()       1      1         3.94      1        1
 ```
 
 ## Internals

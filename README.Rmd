@@ -80,7 +80,7 @@ resp_body_pbf(resp)
 ### Multiple response objects
 
 When running multiple requests in parallel using
-`httr2::multi_req_perform()` the responses are returned as a list of
+`httr2::req_perform_parallel()` the responses are returned as a list of
 responses. `resps_data_pbf()` processes the responses in a vectorized
 manner.
 
@@ -88,7 +88,7 @@ manner.
 # create a list of requests
 reqs <- replicate(5, req, simplify = FALSE)
 # perform them in parallel
-resps <- httr2::multi_req_perform(reqs)
+resps <- httr2::req_perform_parallel(reqs)
 
 # process the responses 
 resps_data_pbf(resps)
@@ -204,7 +204,7 @@ jsn <- function() {
   )
   reqs <- lapply(json_reqs, httr2::request) 
   
-  resps <- httr2::multi_req_perform(reqs) |> 
+  resps <- httr2::req_perform_parallel(reqs) |> 
     lapply(function(x) arcgisutils::parse_esri_json(httr2::resp_body_string(x))) 
   
   do.call(rbind.data.frame, resps) |> 
@@ -221,7 +221,7 @@ pbf <- function() {
   
   reqs <- lapply(pbf_reqs, httr2::request)
   
-  httr2::multi_req_perform(reqs) |> 
+  httr2::req_perform_parallel(reqs) |> 
     resps_data_pbf()
 }
 
