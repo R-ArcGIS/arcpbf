@@ -1,3 +1,7 @@
+# arcpbf 0.1.2
+
+* Bump version of extendr-api to 0.7.0 to avoid r-devel warnings
+
 # arcpbf 0.1.1
 
 * Fixes a bug where sfg class was not assigned for empty geometries. 
