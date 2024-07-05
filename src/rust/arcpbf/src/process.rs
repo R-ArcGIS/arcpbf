@@ -1,20 +1,17 @@
-use extendr_api::prelude::*;
 use crate::parse::parse_spatial_ref;
-use crate::{geometry, field_type_robj_mapper};
 use crate::table::process_table;
+use crate::{field_type_robj_mapper, geometry};
+use extendr_api::prelude::*;
 
 use esripbf::feature_collection_p_buffer::{
-    FeatureResult, FieldType, Value, 
-    GeometryType, CountResult, ObjectIdsResult
+    CountResult, FeatureResult, FieldType, GeometryType, ObjectIdsResult, Value,
 };
 
-
 pub fn process_layer(fr: FeatureResult) -> Robj {
-    
     // get nrow and ncol here
     let n = fr.features.len();
-    let n_fields = fr.fields.len(); 
-    
+    let n_fields = fr.fields.len();
+
     // based on the type of input we need to assign geom_processor
     // a function to process each individaul geometry
     let geom_processor = match fr.geometry_type() {
@@ -31,14 +28,14 @@ pub fn process_layer(fr: FeatureResult) -> Robj {
         GeometryType::EsriGeometryTypeMultipoint => ["sfc_MULTIPOINT", "sfc"],
         GeometryType::EsriGeometryTypePolyline => ["sfc_MULTILINESTRING", "sfc"],
         GeometryType::EsriGeometryTypePolygon => ["sfc_POLYGON", "sfc"],
-        _ => unreachable!()
+        _ => unreachable!(),
     };
 
     // extract the spatial reference
     // it needs to be returned as a list object for construction
     // in sfc object
     let sr = fr.spatial_reference.unwrap();
-    
+
     let sr_list = parse_spatial_ref(sr);
 
     let transform = fr.transform.unwrap();
@@ -84,14 +81,18 @@ pub fn process_layer(fr: FeatureResult) -> Robj {
     let empty_bbox = Doubles::from_values([Rfloat::na(), Rfloat::na(), Rfloat::na(), Rfloat::na()])
         .into_robj()
         .set_names(&["xmin", "ymin", "xmax", "ymax"])
-        .unwrap();
-    
-    // recreate the NA CRS. This will be populated later 
+        .unwrap()
+        .clone();
+
+    // recreate the NA CRS. This will be populated later
     let na_crs = list!(
         input = Strings::from(Rstr::na()),
         wkt = Strings::from(Rstr::na())
-    ).set_class(["crs"])
-    .unwrap();
+    )
+    .set_class(["crs"])
+    .unwrap()
+    .clone()
+    .into_robj();
 
     let geoms = geoms
         .into_robj()
@@ -104,8 +105,8 @@ pub fn process_layer(fr: FeatureResult) -> Robj {
         .set_attrib("bbox", empty_bbox)
         .unwrap()
         .set_attrib("crs", na_crs)
-        .unwrap();
-    
+        .unwrap()
+        .clone();
 
     // iterate over the
     let res_vecs = attr_vecs
@@ -124,17 +125,13 @@ pub fn process_layer(fr: FeatureResult) -> Robj {
         .set_attrib("row.names", row_index)
         .unwrap()
         .set_class(&["data.frame"])
-        .unwrap();
+        .unwrap()
+        .clone();
 
-    let res = list!(
-        attributes = attr_df,
-        geometry = geoms,
-        sr = sr_list
-    );
+    let res = list!(attributes = attr_df, geometry = geoms, sr = sr_list);
 
     res.into_robj()
 }
-
 
 pub fn process_feature_result(fr: FeatureResult) -> Robj {
     // for now we will return NULL if z or m dimensions are present
@@ -149,17 +146,16 @@ pub fn process_feature_result(fr: FeatureResult) -> Robj {
     //   2. Process Geometries
     //      - If Multipatch or has Z or has M error for now
     //      - they are not supported
-    // 
+    //
     // transform informatoion used when processing geometry
     // need to remove unwraps probably for tables
 
     if fr.spatial_reference.is_none() {
-        return process_table(fr)
+        return process_table(fr);
     } else {
         process_layer(fr)
     }
 }
-
 
 pub fn process_counts(x: CountResult) -> Robj {
     Rfloat::from(x.count as f64).into_robj()
@@ -182,5 +178,6 @@ pub fn process_oid(x: ObjectIdsResult) -> Robj {
         .unwrap()
         .set_attrib("row.names", row_ind)
         .unwrap()
+        .clone()
+        .into()
 }
-

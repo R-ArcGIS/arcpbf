@@ -12,7 +12,6 @@ use core::ops::Range;
 // Processes a scalar geometry feature
 // TODO do not unwrap `x`
 pub fn read_poly(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scale) -> List {
-
     // if none return an empty list
     if x.is_none() {
         return list!();
@@ -53,10 +52,14 @@ pub fn read_polygon(x: Option<CompressedGeometry>, trans: &Translate, scale: &Sc
     read_poly(x, trans, scale)
         .set_class(&["XY", "POLYGON", "sfg"])
         .unwrap()
+        .clone()
+        .into_robj()
 }
 
 pub fn read_polyline(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scale) -> Robj {
     read_poly(x, trans, scale)
         .set_class(&["XY", "MULTILINESTRING", "sfg"])
         .unwrap()
+        .clone()
+        .into_robj()
 }

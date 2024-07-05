@@ -53,4 +53,6 @@ pub fn process_table(x: FeatureResult) -> Robj {
         .unwrap()
         .set_class(&["data.frame"])
         .unwrap()
+        .clone()
+        .into_robj()
 }

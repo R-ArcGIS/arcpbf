@@ -5,12 +5,14 @@ version = '0.1.0'
 edition = '2021'
 
 [lib]
-crate-type = [ 'staticlib' ]
+crate-type = ['staticlib']
 name = 'arcpbf'
 
 [dependencies]
-extendr-api = '*'
+extendr-api = '0.7.0'
 esripbf = { path = "../esripbf" }
 prost = "0.12.1"
 
-
+[profile.release]
+codegen-units = 1
+lto = true

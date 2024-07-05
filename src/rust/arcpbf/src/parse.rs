@@ -1,5 +1,5 @@
 use esripbf::esri_p_buffer::feature_collection_p_buffer::value::ValueType;
-use esripbf::feature_collection_p_buffer::{FieldType, Value, SpatialReference};
+use esripbf::feature_collection_p_buffer::{FieldType, SpatialReference, Value};
 use extendr_api::prelude::*;
 
 // Functions to parse each field type
@@ -66,29 +66,46 @@ pub fn parse_date(x: Vec<Value>) -> Robj {
         })
         .collect::<Doubles>()
         .into_robj()
-        .set_class(["POSIXct","POSIXt"])
+        .set_class(["POSIXct", "POSIXt"])
         .unwrap()
+        .clone()
 }
 
-
 pub fn parse_spatial_ref(x: SpatialReference) -> List {
-    let wkt = if x.wkt.len() == 0 { Strings::from(Rstr::na()) } else { Strings::from(Rstr::from(x.wkt)) };
-    let wkid = if x.wkid == 0 { Rint::na() } else { Rint::from(x.wkid as i32) };
-    let latest_wkid = if x.latest_wkid == 0 { Rint::na() } else { Rint::from(x.latest_wkid as i32) };
-    let vcs_wkid = if x.vcs_wkid == 0 { Rint::na() } else { Rint::from(x.vcs_wkid as i32) };
-    let latest_vcs_wkid = if x.latest_vcs_wkid == 0 { Rint::na() } else { Rint::from(x.latest_vcs_wkid as i32) };
+    let wkt = if x.wkt.len() == 0 {
+        Strings::from(Rstr::na())
+    } else {
+        Strings::from(Rstr::from(x.wkt))
+    };
+    let wkid = if x.wkid == 0 {
+        Rint::na()
+    } else {
+        Rint::from(x.wkid as i32)
+    };
+    let latest_wkid = if x.latest_wkid == 0 {
+        Rint::na()
+    } else {
+        Rint::from(x.latest_wkid as i32)
+    };
+    let vcs_wkid = if x.vcs_wkid == 0 {
+        Rint::na()
+    } else {
+        Rint::from(x.vcs_wkid as i32)
+    };
+    let latest_vcs_wkid = if x.latest_vcs_wkid == 0 {
+        Rint::na()
+    } else {
+        Rint::from(x.latest_vcs_wkid as i32)
+    };
 
     list!(
         wkt = wkt,
         wkid = wkid,
         latest_wkid = latest_wkid,
         vcs_wkid = vcs_wkid,
-        latest_vcs_wkid = latest_vcs_wkid 
+        latest_vcs_wkid = latest_vcs_wkid
     )
 }
-
-
-
 
 // map field type to parser
 pub fn field_type_robj_mapper(fi: &FieldType) -> fn(Vec<Value>) -> Robj {

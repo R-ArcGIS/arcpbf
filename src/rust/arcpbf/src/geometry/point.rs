@@ -10,7 +10,8 @@ pub fn read_point(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scal
         let empty_pnt = Doubles::from_values([Rfloat::na(); 2])
             .into_robj()
             .set_class(&["XY", "POINT", "sfg"])
-            .unwrap();
+            .unwrap()
+            .clone();
 
         return empty_pnt;
     }
@@ -22,7 +23,10 @@ pub fn read_point(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scal
 
     let crds = delta_decode(&mut crds, trans, scale);
     let res = Doubles::from_values(crds[0]);
-    res.into_robj().set_class(&["XY", "POINT", "sfg"]).unwrap()
+    res.into_robj()
+        .set_class(&["XY", "POINT", "sfg"])
+        .unwrap()
+        .clone()
 }
 
 pub fn read_multipoint(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scale) -> Robj {
@@ -32,7 +36,8 @@ pub fn read_multipoint(x: Option<CompressedGeometry>, trans: &Translate, scale: 
             .set_attrib("dim", Integers::from_values([0, 2]))
             .unwrap()
             .set_class(&["XY", "MULTIPOINT", "sfg"])
-            .unwrap();
+            .unwrap()
+            .clone();
 
         return empty_mpnt;
     }
@@ -47,4 +52,5 @@ pub fn read_multipoint(x: Option<CompressedGeometry>, trans: &Translate, scale: 
     RMatrix::new_matrix(decoded.len(), 2, |r, c| decoded[r][c])
         .set_class(&["XY", "MULTIPOINT", "sfg"])
         .unwrap()
+        .clone()
 }
