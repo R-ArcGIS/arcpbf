@@ -49,11 +49,9 @@ post_process_pbf <- function(x, use_sf = TRUE) {
 }
 
 post_process_single <- function(x, use_sf) {
-
   if (is.data.frame(x)) {
     x
   } else if (use_sf && !is.data.frame(x) && is.list(x) && !is.null(names(x))) {
-
     rlang::check_installed("sf", "to create `sf` objects.")
 
     sf_crs <- crs(x[["sr"]])
@@ -80,7 +78,7 @@ post_process_list <- function(x, use_sf) {
   # check the class of the first element
   # if data.frame bind all rows
   if (inherits(x[[1]], "data.frame")) {
-    x <- squish_dfs(x)
+    x <- arcgisutils::rbind_results(x)
 
     if (use_sf && inherits(x, "sf")) {
       # force recalculation of the bounding box
@@ -102,20 +100,4 @@ crs <- function(sr) {
   possible_crs <- sr[c("latest_wkid", "wkid", "wkt")]
   valid_crs_idx <- which(!is.na(possible_crs))[1]
   possible_crs[[valid_crs_idx]]
-}
-
-
-# squishes data frames as fast as possible
-squish_dfs <- function(x) {
-  if (rlang::is_installed("collapse", version = "2.0.0")) {
-    x <- collapse::rowbind(x)
-  } else if (rlang::is_installed("data.table")) {
-    x <- data.table::rbindlist(x)
-    data.table::setDF(x)
-  } else if (rlang::is_installed("dplyr")) {
-    x <- dplyr::bind_rows(x)
-  } else {
-    x <- do.call(rbind.data.frame, x)
-  }
-  x
 }
