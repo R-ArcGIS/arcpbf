@@ -1,36 +1,14 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>/404.html</loc>
-  </url>
-  <url>
-    <loc>/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>/authors.html</loc>
-  </url>
-  <url>
-    <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/news/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/httr2.html</loc>
-  </url>
-  <url>
-    <loc>/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/open_pbf.html</loc>
-  </url>
-  <url>
-    <loc>/reference/post_process_pbf.html</loc>
-  </url>
-  <url>
-    <loc>/reference/process_pbf.html</loc>
-  </url>
-  <url>
-    <loc>/reference/read_pbf.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/LICENSE.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/news/index.html</loc></url>
+<url><loc>/reference/httr2.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/open_pbf.html</loc></url>
+<url><loc>/reference/post_process_pbf.html</loc></url>
+<url><loc>/reference/process_pbf.html</loc></url>
+<url><loc>/reference/read_pbf.html</loc></url>
 </urlset>
+
