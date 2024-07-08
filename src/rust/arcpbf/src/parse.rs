@@ -1,18 +1,42 @@
+use std::cell::OnceCell;
+
+use chrono::NaiveDateTime;
 use esripbf::esri_p_buffer::feature_collection_p_buffer::value::ValueType;
 use esripbf::feature_collection_p_buffer::{FieldType, SpatialReference, Value};
 use extendr_api::prelude::*;
 
 // Functions to parse each field type
-pub fn parse_small_ints(x: Vec<Value>) -> Integers {
-    x.into_iter()
-        .map(|xi| match xi.value_type {
-            Some(x) => match x {
-                ValueType::SintValue(i) => Rint::from(i),
-                _ => unreachable!(),
-            },
-            None => Rint::na(),
+pub fn parse_small_ints(x: Vec<Value>) -> Doubles {
+    let is_date: OnceCell<bool> = OnceCell::new();
+    let mut res_vec = x
+        .into_iter()
+        .map(|xi| {
+            let _ = is_date.set(true);
+            match xi.value_type {
+                Some(x) => match x {
+                    ValueType::SintValue(i) => Rfloat::from(i),
+                    ValueType::StringValue(s) => {
+                        let maybe_date = chrono::NaiveDate::parse_from_str(&s, "%Y-%m-%d");
+                        match maybe_date {
+                            Ok(d) => {
+                                Rfloat::from(NaiveDateTime::from(d).and_utc().timestamp() as i32)
+                            }
+
+                            Err(_) => Rfloat::na(),
+                        }
+                    }
+                    _ => unreachable!(),
+                },
+                None => Rfloat::na(),
+            }
         })
-        .collect::<Integers>()
+        .collect::<Doubles>();
+
+    if is_date.get().is_some_and(|x| *x) {
+        let date_res = res_vec.set_class(["POSIXct", "POSIXt"]).unwrap().clone();
+        return date_res;
+    }
+    res_vec
 }
 
 pub fn parse_big_ints(x: Vec<Value>) -> Doubles {

@@ -12,6 +12,7 @@ name = 'arcpbf'
 extendr-api = '0.7.0'
 esripbf = { path = "../esripbf" }
 prost = "0.12.1"
+chrono = "*"
 
 [profile.release]
 codegen-units = 1
