@@ -38,9 +38,9 @@ pub fn process_layer(fr: FeatureResult) -> Robj {
 
     let sr_list = parse_spatial_ref(sr);
 
-    let transform = fr.transform.unwrap();
-    let trans = transform.clone().translate.unwrap();
-    let scale = transform.scale.unwrap();
+    let transform = fr.transform.unwrap_or_default();
+    let trans = transform.clone().translate.unwrap_or_default();
+    let scale = transform.scale.unwrap_or_default();
 
     let field_types = fr
         .fields

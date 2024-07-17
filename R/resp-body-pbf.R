@@ -5,7 +5,7 @@
 #' @details
 #'
 #' Responses of type `application/x-protobuf` are automatically processed using
-#'`process_pbf()` with optional post-processing applied. Theses functions
+#' `process_pbf()` with optional post-processing applied. Theses functions
 #' assume that the body of the responses are an Esri FeatureCollection
 #' protocol buffer.
 #'
@@ -48,7 +48,8 @@
 #'     "https://services.arcgis.com/P3ePLMYs2RVChkJx",
 #'     "arcgis", "rest", "services",
 #'     "ACS_Population_by_Race_and_Hispanic_Origin_Boundaries",
-#'     "FeatureServer", "2", "query", fsep = "/"
+#'     "FeatureServer", "2", "query",
+#'     fsep = "/"
 #'   )
 #'
 #'   # create the base request
@@ -78,7 +79,6 @@
 #' @rdname httr2
 resp_body_pbf <- function(resp, post_process = TRUE, use_sf = TRUE) {
   if (requireNamespace("httr2", quietly = TRUE)) {
-
     if (httr2::resp_content_type(resp) != "application/x-protobuf") {
       rlang::abort("`resp` must have a content type of `application/x-protobuf`")
     }
@@ -102,7 +102,6 @@ resp_body_pbf <- function(resp, post_process = TRUE, use_sf = TRUE) {
 #' @rdname httr2
 resps_data_pbf <- function(resps, post_process = TRUE, use_sf = TRUE) {
   res <- multi_resp_process_(resps)
-
   if (post_process) {
     post_process_pbf(res, use_sf)
   } else {

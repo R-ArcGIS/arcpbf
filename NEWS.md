@@ -1,3 +1,8 @@
+# arcpbf (development version)
+
+* Fix parsing of dates and small integers 
+* Add minimal integration tests with `{arcgislayers}`
+
 # arcpbf 0.1.3
 
 * Closes https://github.com/R-ArcGIS/arcpbf/issues/2
