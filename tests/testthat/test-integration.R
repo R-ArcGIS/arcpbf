@@ -1,6 +1,7 @@
-library(arcgislayers)
-
 test_that("dates and ints are returned", {
+  skip_on_cran()
+  skip_if_not_installed("arcgislayers")
+  library(arcgislayers)
   res <- "https://services.arcgis.com/GL0fWlNkwysZaKeV/arcgis/rest/services/TXLA_ZCTA_PRCPpred/FeatureServer/0" |>
     arc_open() |>
     arc_select(n_max = 10)
