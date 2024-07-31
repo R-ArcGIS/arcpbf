@@ -1,4 +1,5 @@
-use std::cell::OnceCell;
+// use std::cell::OnceCell;
+use once_cell::sync::OnceCell;
 
 use chrono::NaiveDateTime;
 use esripbf::esri_p_buffer::feature_collection_p_buffer::value::ValueType;

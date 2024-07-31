@@ -1,5 +1,6 @@
-# arcpbf (development version)
+# arcpbf 0.1.4
 
+* Addresses MSRV requirement by replacing `std::cell::OnceCell` with `once_cell::sync::OnceCell`
 * Fix parsing of dates and small integers 
 * Add minimal integration tests with `{arcgislayers}`
 
