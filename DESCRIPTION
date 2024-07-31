@@ -18,6 +18,7 @@ SystemRequirements: Cargo (Rust's package manager), rustc
 Suggests: 
     httr2,
     sf,
+    arcgislayers,
     testthat (>= 3.0.0)
 Imports: 
     arcgisutils (>= 0.3.0),
