@@ -6,7 +6,7 @@ on:
     branches: [main, master]
     
 
-name: Rust-check
+name: Check Rust on Fedora
 
 permissions: read-all
 
