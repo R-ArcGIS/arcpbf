@@ -16,7 +16,7 @@ once_cell = "*"
 chrono = "*"
 
 [patch.crates-io]
-libR-sys = { git = "https://github.com/extendr/libR-sys", rev = "976c56d396175f8d09548b0a1f0a77fc393018f2" }
+libR-sys = { git = "https://github.com/extendr/libR-sys", rev = "8649204b2490f3aa3732d56f4d84af7f042e5f05" }
 
 [profile.release]
 
