@@ -1,0 +1,63 @@
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+name: Fedora R-CMD-check
+
+jobs:
+  R-CMD-check:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/r-hub/containers/valgrind:latest
+
+    name: Fedora R CMD check
+
+    strategy:
+      fail-fast: false
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      # First run of check-r-package@v2
+      - name: Run R package checks
+        uses: r-lib/actions/check-r-package@v2
+        with:
+          upload-snapshots: true
+          error-on: '"error"'
+
+      # Set Rust toolchain to 1.67 using dtolnay action
+      - name: Setup Rust 1.67
+        uses: dtolnay/rust-toolchain@1.67.0
+
+      # Second run of check-r-package@v2 with Rust 1.67
+      - name: Run R package checks with Rust 1.67
+        id: check_rust_167
+        uses: r-lib/actions/check-r-package@v2
+        with:
+          error-on: '"error"'
+        continue-on-error: true
+
+      # Check if the step succeeded when it should have failed, and fail the job if so
+      - name: Fail if check succeeds
+        if: ${{ steps.check_rust_167.outcome == 'success' }}
+        run: |
+          echo "The R CMD check with Rust 1.67 unexpectedly succeeded."
+          exit 1
+
+      # Mark the job as success if it fails as expected
+      - name: Mark as success if failure was expected
+        if: ${{ steps.check_rust_167.outcome == 'failure' }}
+        run: echo "The R CMD check with Rust 1.67 failed as expected."

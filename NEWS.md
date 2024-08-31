@@ -1,3 +1,7 @@
+# arcpbf 0.1.5
+
+* Addresses CRAN removal for failing to compile on Fedora.
+
 # arcpbf 0.1.4
 
 * Addresses MSRV requirement by replacing `std::cell::OnceCell` with `once_cell::sync::OnceCell`
