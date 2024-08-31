@@ -23,4 +23,6 @@ Suggests:
 Imports: 
     arcgisutils (>= 0.3.0),
     rlang
+Remotes:
+    R-ArcGIS/arcgislayers
 Config/testthat/edition: 3
