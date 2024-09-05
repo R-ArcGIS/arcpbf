@@ -18,11 +18,8 @@ SystemRequirements: Cargo (Rust's package manager), rustc >= 1.70
 Suggests: 
     httr2,
     sf,
-    arcgislayers,
     testthat (>= 3.0.0)
 Imports: 
     arcgisutils (>= 0.3.0),
     rlang
-Remotes:
-    R-ArcGIS/arcgislayers
 Config/testthat/edition: 3

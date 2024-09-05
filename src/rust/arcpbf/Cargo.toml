@@ -9,14 +9,11 @@ crate-type = ['staticlib']
 name = 'arcpbf'
 
 [dependencies]
-extendr-api = '0.7.0'
+extendr-api = '0.7.1'
 esripbf = { path = "../esripbf" }
 prost = "0.12.1"
 once_cell = "*"
 chrono = "*"
-
-[patch.crates-io]
-libR-sys = { git = "https://github.com/extendr/libR-sys", rev = "8649204b2490f3aa3732d56f4d84af7f042e5f05" }
 
 [profile.release]
 
