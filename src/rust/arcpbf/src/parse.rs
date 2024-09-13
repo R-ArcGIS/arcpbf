@@ -130,6 +130,28 @@ pub fn parse_spatial_ref(x: SpatialReference) -> List {
     )
 }
 
+pub fn parse_blob(x: Vec<Value>) -> Robj {
+    let mut n_some = 0usize;
+    let res = x.into_iter()
+        .map(|xi| {
+            match xi.value_type {
+                Some(v) => {
+                    n_some += 1;
+                    Raw::new(0)
+                },
+                None => Raw::new(0),
+            }
+        })
+        .collect::<List>()
+        .into();
+
+    if n_some > 0 {
+        eprintln!("Blob types not supported.\nPlease report an issue at https://github.com/R-ArcGIS/arcpbf/issues\nProvide the FeatureService URL if possible");
+    }
+
+    res
+}
+
 // map field type to parser
 pub fn field_type_robj_mapper(fi: &FieldType) -> fn(Vec<Value>) -> Robj {
     match fi {
@@ -144,7 +166,7 @@ pub fn field_type_robj_mapper(fi: &FieldType) -> fn(Vec<Value>) -> Robj {
         // FieldType::EsriFieldTypeXml => todo!(),
         FieldType::EsriFieldTypeGlobalId => |x| parse_strings(x).into_robj(),
         // FieldType::EsriFieldTypeRaster => todo!(),
-        // FieldType::EsriFieldTypeBlob => todo!(),
+        FieldType::EsriFieldTypeBlob => |x| parse_blob(x),
         // FieldType::EsriFieldTypeGeometry => todo!(),
         _ => todo!(),
     }
