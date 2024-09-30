@@ -1,3 +1,7 @@
+# arcpbf 0.1.6
+
+* Adds `tests/` to `.Rbuildignore` to pass CRAN checks
+
 # arcpbf 0.1.5
 
 * Addresses CRAN removal for failing to compile on Fedora.

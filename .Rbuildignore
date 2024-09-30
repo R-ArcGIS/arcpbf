@@ -15,3 +15,5 @@
 ^cran-comments\.md$
 ^README.*
 ^inst/testing-layers.R$
+^tests/
+^_pkgdown.yml$
