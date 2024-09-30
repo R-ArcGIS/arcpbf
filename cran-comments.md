@@ -1,5 +1,10 @@
 ## R CMD check results
 
+This submission resolves WARNS on CRAN checks.
+
+- It adds `tests/` to `.Rbuildignore`.
+- It adds files in `inst/` to `.Rbuildignore` to remove installed size NOTE
+
 0 errors | 0 warnings | 0 note
 
 ## Check environments:
@@ -20,5 +25,5 @@
 
 ## Tarball size
 
-Tarball is 5.2mb due to vendored rust depencies. 
+Tarball is 4.7mb due to vendored rust depencies. 
  
