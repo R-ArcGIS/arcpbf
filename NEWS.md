@@ -1,3 +1,7 @@
+# arcpbf (development version)
+
+* Fixes bug where an error occured when a query returned no rows <https://github.com/R-ArcGIS/arcpbf/issues/8>
+
 # arcpbf 0.1.6
 
 * Adds `tests/` to `.Rbuildignore` to pass CRAN checks

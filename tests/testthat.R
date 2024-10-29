@@ -6,7 +6,7 @@
 # * https://r-pkgs.org/testing-design.html#sec-tests-files-overview
 # * https://testthat.r-lib.org/articles/special-files.html
 
-# library(testthat)
-# library(arcpbf)
+library(testthat)
+library(arcpbf)
 
-# test_check("arcpbf")
+test_check("arcpbf")
