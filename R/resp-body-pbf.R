@@ -102,6 +102,7 @@ resp_body_pbf <- function(resp, post_process = TRUE, use_sf = TRUE) {
 #' @rdname httr2
 resps_data_pbf <- function(resps, post_process = TRUE, use_sf = TRUE) {
   res <- multi_resp_process_(resps)
+  if (rlang::is_empty(res)) return(NULL)
   if (post_process) {
     post_process_pbf(res, use_sf)
   } else {
