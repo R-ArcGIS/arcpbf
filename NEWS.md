@@ -1,5 +1,6 @@
 # arcpbf (development version)
 
+* Returns warning message when `esriFieldBlob` is encountered <https://github.com/R-ArcGIS/arcpbf/issues/6>
 * Fixes bug where an error occured when a query returned no rows <https://github.com/R-ArcGIS/arcpbf/issues/8>
 
 # arcpbf 0.1.6
