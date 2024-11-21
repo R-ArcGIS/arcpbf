@@ -1,5 +1,6 @@
 # arcpbf (development version)
 
+* Handles missing CRS and closes <https://github.com/R-ArcGIS/arcpbf/issues/11> h/t @elipousson for reporting
 * Returns warning message when `esriFieldBlob` is encountered <https://github.com/R-ArcGIS/arcpbf/issues/6>
 * Fixes bug where an error occured when a query returned no rows <https://github.com/R-ArcGIS/arcpbf/issues/8>
 

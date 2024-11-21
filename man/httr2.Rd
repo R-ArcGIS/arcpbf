@@ -10,7 +10,7 @@ resp_body_pbf(resp, post_process = TRUE, use_sf = TRUE)
 resps_data_pbf(resps, post_process = TRUE, use_sf = TRUE)
 }
 \arguments{
-\item{resp}{A response object.}
+\item{resp}{A httr2 \link[httr2]{response} object, created by \code{\link[httr2:req_perform]{req_perform()}}.}
 
 \item{post_process}{default \code{TRUE}. Apply \code{post_process_pbf()} to the
 pbf body.}
@@ -57,7 +57,8 @@ if (rlang::is_installed(c("httr2", "sf")) && interactive()) {
     "https://services.arcgis.com/P3ePLMYs2RVChkJx",
     "arcgis", "rest", "services",
     "ACS_Population_by_Race_and_Hispanic_Origin_Boundaries",
-    "FeatureServer", "2", "query", fsep = "/"
+    "FeatureServer", "2", "query",
+    fsep = "/"
   )
 
   # create the base request
