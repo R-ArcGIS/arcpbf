@@ -1,3 +1,5 @@
 .Rproj.user
 src/rust/vendor
 CRAN-SUBMISSION
+src/Makevars
+src/Makevars.win

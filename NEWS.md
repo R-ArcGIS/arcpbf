@@ -1,4 +1,4 @@
-# arcpbf (development version)
+# arcpbf 0.1.7
 
 * Handles missing CRS and closes <https://github.com/R-ArcGIS/arcpbf/issues/11> h/t @elipousson for reporting
 * Returns warning message when `esriFieldBlob` is encountered <https://github.com/R-ArcGIS/arcpbf/issues/6>

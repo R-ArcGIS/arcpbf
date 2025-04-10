@@ -6,7 +6,6 @@
 # This file was created with the following call:
 #   .Call("wrap__make_arcpbf_wrappers", use_symbols = TRUE, package_name = "arcpbf")
 
-#' @docType package
 #' @usage NULL
 #' @useDynLib arcpbf, .registration = TRUE
 NULL
@@ -14,9 +13,9 @@ NULL
 read_pbf_ <- function(path) .Call(wrap__read_pbf_, path)
 
 #' Read a pbf file as a raw vector
-#' 
+#'
 #' @param path the path to the `.pbf` file.
-#' 
+#'
 #' @returns a raw vector
 #' @export
 #' @examples
@@ -31,13 +30,13 @@ read_pbf_ <- function(path) .Call(wrap__read_pbf_, path)
 open_pbf <- function(path) .Call(wrap__open_pbf, path)
 
 #' Process a FeatureCollection PBF
-#' 
-#' Process a pbf from a raw vector or a list of raw vectors. 
-#' 
+#'
+#' Process a pbf from a raw vector or a list of raw vectors.
+#'
 #' @param proto either a raw vector or a list of raw vectors containing a FeatureCollection pbf    
-#' 
-#' @details 
-#' 
+#'
+#' @details
+#'
 #' There are three types of PBF FeatureCollection responses that may be
 #' returned.
 #'
@@ -58,39 +57,39 @@ open_pbf <- function(path) .Call(wrap__open_pbf, path)
 #' In the case that the query parameter `returnIdsOnly` is `true`, a
 #' `data.frame` is returned containing the object IDs and the column name
 #' set to the object ID field name in the feature service.
-#' 
-#' @returns 
-#' 
-#' - For count results, a scalar integer. 
+#'
+#' @returns
+#'
+#' - For count results, a scalar integer.
 #' - For object ID results a `data.frame` with one column.
 #' - For pbfs that contain geometries, a list of 3 elements:
 #'     - `attributes` is a `data.frame` of the fields of the FeatureCollection
 #'     - `geometry` is an sfc object _**without a computed bounding box or coordinate reference system set**_
 #'     - `sr` is a named list of the spatial reference of the feature collection
-#' 
+#'
 #' **Important**: Use [`post_process_pbf()`] to convert to an `sf` object with a computed bounding box and CRS.
-#' 
+#'
 #' @export
-#' 
+#'
 #' @examples
 #' count_fp <- system.file("count.pbf", package = "arcpbf")
 #' oid_fp <- system.file("ids.pbf", package = "arcpbf")
 #' tbl_fp <- system.file("small-table.pbf", package = "arcpbf")
 #' fc_fp <- system.file("small-points.pbf", package = "arcpbf")
-#' 
+#'
 #' # count response
 #' count_raw <- open_pbf(count_fp)
 #' process_pbf(count_raw)
-#' 
+#'
 #' # object id response
 #' oid_raw <- open_pbf(oid_fp)
 #' head(process_pbf(oid_raw))
-#' 
+#'
 #' # table feature collection
 #' tbl_raw <- open_pbf(tbl_fp)
 #' process_pbf(tbl_raw)
-#' 
-#' # feature collection with geometry 
+#'
+#' # feature collection with geometry
 #' fc_raw <- open_pbf(fc_fp)
 #' process_pbf(fc_raw)
 process_pbf <- function(proto) .Call(wrap__process_pbf, proto)

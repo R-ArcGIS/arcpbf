@@ -3,13 +3,14 @@ name = 'arcpbf'
 publish = false
 version = '0.1.0'
 edition = '2021'
+rust-version = "1.65.0"
 
 [lib]
 crate-type = ['staticlib']
 name = 'arcpbf'
 
 [dependencies]
-extendr-api = '0.7.1'
+extendr-api = "0.8.0"
 esripbf = { path = "../esripbf" }
 prost = "0.12.1"
 once_cell = "*"

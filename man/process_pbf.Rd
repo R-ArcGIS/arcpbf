@@ -68,7 +68,7 @@ head(process_pbf(oid_raw))
 tbl_raw <- open_pbf(tbl_fp)
 process_pbf(tbl_raw)
 
-# feature collection with geometry 
+# feature collection with geometry
 fc_raw <- open_pbf(fc_fp)
 process_pbf(fc_raw)
 }

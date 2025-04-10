@@ -17,3 +17,7 @@
 ^inst/testing-layers.R$
 ^tests/
 ^_pkgdown.yml$
+^src/rust/vendor$
+^src/rust/target$
+^src/Makevars$
+^src/Makevars\.win$
