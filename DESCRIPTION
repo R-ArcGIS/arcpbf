@@ -1,6 +1,6 @@
 Package: arcpbf
 Title: Process ArcGIS Protocol Buffer FeatureCollections
-Version: 0.1.7
+Version: 0.1.7.9000
 Authors@R: 
     person("Josiah", "Parry", , "josiah.parry@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-9910-865X"))

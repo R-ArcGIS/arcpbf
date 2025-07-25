@@ -1,3 +1,7 @@
+# arcpbf (development version)
+
+* Adds support for 64 bit integers closing <https://github.com/R-ArcGIS/arcpbf/issues/15> h/t to @jjoeldaniel for reporting.
+
 # arcpbf 0.1.7
 
 * Handles missing CRS and closes <https://github.com/R-ArcGIS/arcpbf/issues/11> h/t @elipousson for reporting

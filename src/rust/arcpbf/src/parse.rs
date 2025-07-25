@@ -23,8 +23,12 @@ pub fn parse_small_ints(x: Vec<Value>) -> Doubles {
 
                         Err(_) => Rfloat::na(),
                     }
-                }
-                _ => unreachable!(),
+                },
+                ValueType::Int64Value(i) => Rfloat::from(i as f64),
+                ValueType::Sint64Value(i) => Rfloat::from(i as f64),
+                _ => {
+                    throw_r_error(format!("Encountered unexpected value type of {x:?} please report an issue at https://github.com/R-ArcGIS/arcpbf/issues/new"))
+                },
             },
             None => Rfloat::na(),
         })
@@ -163,6 +167,7 @@ pub fn field_type_robj_mapper(fi: &FieldType) -> fn(Vec<Value>) -> Robj {
         FieldType::EsriFieldTypeDate => |x| parse_date(x),
         FieldType::EsriFieldTypeGlobalId => |x| parse_strings(x).into_robj(),
         FieldType::EsriFieldTypeBlob => |x| parse_blob(x),
+
         _ => |x| {
             eprintln!("This field type is not supported.\nPlease report an issue at https://github.com/R-ArcGIS/arcpbf/issues\nProvide the FeatureService URL if possible");
             List::new(x.len()).into_robj()
