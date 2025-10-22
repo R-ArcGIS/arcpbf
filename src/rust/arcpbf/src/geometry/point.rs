@@ -18,7 +18,7 @@ pub fn read_point(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scal
 
     let mut crds = match x.unwrap() {
         CompressedGeometry::Geometry(g) => g.coords,
-        CompressedGeometry::ShapeBuffer(_) => todo!(),
+        CompressedGeometry::ShapeBuffer(shape) => unimplemented!("ShapeBuffer not implemented"),
     };
 
     let crds = delta_decode(&mut crds, trans, scale);

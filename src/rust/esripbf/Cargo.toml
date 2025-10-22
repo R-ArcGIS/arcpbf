@@ -5,9 +5,7 @@ edition = "2021"
 exclude = ["create-proto.rs"]
 
 [dependencies]
-bytes = "1.5.0"
 prost = "0.12.1"
 
 # [build-dependencies]
 # prost-build = "0.12.1"
-
