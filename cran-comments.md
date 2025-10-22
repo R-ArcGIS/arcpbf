@@ -1,9 +1,6 @@
 ## R CMD check results
 
-This submission resolves WARNS on CRAN checks.
-
-- It adds `tests/` to `.Rbuildignore`.
-- It adds files in `inst/` to `.Rbuildignore` to remove installed size NOTE
+This is a minor version bump to add support for big integers.
 
 0 errors | 0 warnings | 0 note
 
@@ -19,9 +16,7 @@ This submission resolves WARNS on CRAN checks.
 
 ## Notes
 
-* Minimum supported rust version (MSRV) is set to 1.70 this **will fail** gracefully on CRAN's Fedora machine.
-    * this is checked by tools/msrv.R via `configure` and `configure.win`
-
+* Minimum supported rust version (MSRV) is set to 1.70.
 
 ## Tarball size
 
