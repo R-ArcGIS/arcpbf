@@ -1,4 +1,4 @@
-# arcpbf (development version)
+# arcpbf 0.2.0
 
 * Adds support for 64 bit integers closing <https://github.com/R-ArcGIS/arcpbf/issues/15> h/t to @jjoeldaniel for reporting.
 
