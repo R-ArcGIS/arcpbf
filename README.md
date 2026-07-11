@@ -1,11 +1,11 @@
 
 
+# arcpbf <img src="man/figures/logo.png" align="right" height="138" alt="" />
+
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/R-ArcGIS/arcpbf/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/R-ArcGIS/arcpbf/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
-
-# arcpbf <img src="man/figures/logo.png" align="right" height="138" alt="" />
 
 `{arcpbf}` is an R package that processes [Esri FeatureCollection
 Protocol
@@ -372,8 +372,8 @@ bench::mark(
 #> # A tibble: 2 × 6
 #>   expression   min median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <dbl>  <dbl>     <dbl>     <dbl>    <dbl>
-#> 1 jsn()       1.67   1.71      1         4.03      Inf
-#> 2 pbf()       1      1         1.66      1         NaN
+#> 1 jsn()       1.43   1.48      1         4.03      Inf
+#> 2 pbf()       1      1         1.36      1         NaN
 ```
 
 ## Internals
