@@ -386,8 +386,8 @@ bench::mark(
 #> # A tibble: 2 × 6
 #>   expression   min median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <dbl>  <dbl>     <dbl>     <dbl>    <dbl>
-#> 1 jsn()       2.04   1.36      1         4.03     8.42
-#> 2 pbf()       1      1         1.42      1        1
+#> 1 jsn()       1.43   1.48      1         4.03      Inf
+#> 2 pbf()       1      1         1.36      1         NaN
 ```
 
 ## Internals

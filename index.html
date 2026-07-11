@@ -47,12 +47,13 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9">
-<div class="section level1">
+  <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="arcpbf">arcpbf<a class="anchor" aria-label="anchor" href="#arcpbf"></a>
+<img src="logo.png" class="logo" alt=""><h1 id="arcpbf-">arcpbf <a class="anchor" aria-label="anchor" href="#arcpbf-"></a>
 </h1>
 </div>
+<!-- badges: start -->
+
 <p><a href="https://r.esri.com/arcpbf/" class="external-link">arcpbf</a> is an R package that processes <a href="https://github.com/Esri/arcgis-pbf/tree/main/proto/FeatureCollection" class="external-link">Esri FeatureCollection Protocol Buffers</a>. It is written in Rust and powered by the <a href="https://github.com/extendr/extendr" class="external-link">extendr</a> library.</p>
 <p>arcpbf has functions for reading protocol buffer (pbf) results from an ArcGIS REST API result. pbf results are returned when <code>f=pbf</code> in a <a href="https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm" class="external-link">query</a>.</p>
 <p>The package is extremely lightweight and fast.</p>
@@ -381,8 +382,8 @@
 <span><span class="co">#&gt; # A tibble: 2 × 6</span></span>
 <span><span class="co">#&gt;   expression   min median `itr/sec` mem_alloc `gc/sec`</span></span>
 <span><span class="co">#&gt;   &lt;bch:expr&gt; &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt; 1 jsn()       2.04   1.36      1         4.03     8.42</span></span>
-<span><span class="co">#&gt; 2 pbf()       1      1         1.42      1        1</span></span></code></pre></div>
+<span><span class="co">#&gt; 1 jsn()       1.43   1.48      1         4.03      Inf</span></span>
+<span><span class="co">#&gt; 2 pbf()       1      1         1.36      1         NaN</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="internals">Internals<a class="anchor" aria-label="anchor" href="#internals"></a>
@@ -395,7 +396,6 @@
 <p>Alternatively, it may make sense to write to a geoarrow array and convert to sfc using {wk}. These are just thoughts.</p>
 </div>
 </div>
-
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
