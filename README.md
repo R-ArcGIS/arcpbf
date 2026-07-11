@@ -1,4 +1,5 @@
 
+
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/R-ArcGIS/arcpbf/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/R-ArcGIS/arcpbf/actions/workflows/R-CMD-check.yaml)
@@ -36,7 +37,7 @@ point.
     default in `read_pbf()`, `resp_body_pbf()` and `resps_data_pbf()`.
 
 > ***Developer Note***: Rust must be installed to compile the package.
-> Run the one line installation instructions at <https://rustup.rs/>. To
+> Run the one line installation instructions at https://rustup.rs/. To
 > verify your Rust installation is compatible, run
 > `rextendr::rust_sitrep()`. That’s it.
 
@@ -371,8 +372,8 @@ bench::mark(
 #> # A tibble: 2 × 6
 #>   expression   min median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <dbl>  <dbl>     <dbl>     <dbl>    <dbl>
-#> 1 jsn()       2.04   1.36      1         4.03     8.42
-#> 2 pbf()       1      1         1.42      1        1
+#> 1 jsn()       1.44   1.42      1         4.03      Inf
+#> 2 pbf()       1      1         1.17      1         NaN
 ```
 
 ## Internals
