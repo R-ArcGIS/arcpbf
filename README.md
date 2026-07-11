@@ -64,11 +64,10 @@ resp <- httr2::req_perform(req)
 
 resp
 #> <httr2_response>
-#> GET
-#> https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=objectid&resultRecordCount=10&f=pbf&token=
+#> GET https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=objectid&resultRecordCount=10&f=pbf&token=
 #> Status: 200 OK
 #> Content-Type: application/x-protobuf
-#> Body: In memory (60102 bytes)
+#> Body: In memory (60062 bytes)
 ```
 
 We can process request responses with `resp_body_pbf()`. Post-processing
@@ -107,8 +106,6 @@ manner.
 reqs <- replicate(5, req, simplify = FALSE)
 # perform them in parallel
 resps <- httr2::req_perform_parallel(reqs)
-#> Iterating ■■■■■■■ 20% | ETA: 7sIterating ■■■■■■■■■■■■■ 40% | ETA: 6sIterating
-#> ■■■■■■■■■■■■■■■■■■■■■■■■■ 80% | ETA: 1s
 
 # process the responses 
 resps_data_pbf(resps)
@@ -369,15 +366,13 @@ bench::mark(
   relative = TRUE,
   iterations = 5
 )
-#> Iterating ■■■■■■■■■■■■■■■■                  50% | ETA:  1s                                                           Iterating ■■■■■■■■■■■■■■■■                  50% | ETA:  1s
-#> Iterating ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  100% | ETA:  0s
 #> Warning: Some expressions had a GC in every iteration; so filtering is
 #> disabled.
 #> # A tibble: 2 × 6
 #>   expression   min median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <dbl>  <dbl>     <dbl>     <dbl>    <dbl>
-#> 1 jsn()       3.06   3.27      1         3.94     1.39
-#> 2 pbf()       1      1         3.94      1        1
+#> 1 jsn()       2.04   1.36      1         4.03     8.42
+#> 2 pbf()       1      1         1.42      1        1
 ```
 
 ## Internals
