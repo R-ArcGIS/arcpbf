@@ -64,6 +64,7 @@ not supported and will result in an error if used with these functions.
 ## Examples
 
 ``` r
+
 if (rlang::is_installed(c("httr2", "sf")) && interactive()) {
   base_url <- file.path(
     "https://services.arcgis.com/P3ePLMYs2RVChkJx",

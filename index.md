@@ -54,6 +54,7 @@ In most cases, we will be processing a protocol buffer directly from an
 http request created with [`{httr2}`](https://httr2.r-lib.org/).
 
 ``` r
+
 library(arcpbf)
 
 # specify url to sent our request to
@@ -63,11 +64,10 @@ resp <- httr2::req_perform(req)
 
 resp
 #> <httr2_response>
-#> GET
-#> https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=objectid&resultRecordCount=10&f=pbf&token=
+#> GET https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2/query?where=1=1&outFields=objectid&resultRecordCount=10&f=pbf&token=
 #> Status: 200 OK
 #> Content-Type: application/x-protobuf
-#> Body: In memory (60102 bytes)
+#> Body: In memory (60062 bytes)
 ```
 
 We can process request responses with
@@ -76,6 +76,7 @@ applied by default. The arguments `post_process` and `use_sf` are `TRUE`
 by default.
 
 ``` r
+
 resp_body_pbf(resp)
 #> Simple feature collection with 10 features and 1 field
 #> Geometry type: POLYGON
@@ -104,12 +105,11 @@ the responses are returned as a list of responses.
 vectorized manner.
 
 ``` r
+
 # create a list of requests
 reqs <- replicate(5, req, simplify = FALSE)
 # perform them in parallel
 resps <- httr2::req_perform_parallel(reqs)
-#> Iterating ■■■■■■■ 20% | ETA: 7sIterating ■■■■■■■■■■■■■ 40% | ETA: 6sIterating
-#> ■■■■■■■■■■■■■■■■■■■■■■■■■ 80% | ETA: 1s
 
 # process the responses 
 resps_data_pbf(resps)
@@ -139,6 +139,7 @@ from. Use [`read_pbf()`](reference/read_pbf.md) to do so. Again,
 post-processing steps are applied by default.
 
 ``` r
+
 fp <- system.file("small-points.pbf", package = "arcpbf")
 read_pbf(fp)
 #> Simple feature collection with 2 features and 1 field
@@ -191,6 +192,7 @@ elements:
     reference system set*** or a CRS set.
 
 ``` r
+
 # read an example pbf without post-processing
 fc_fp <- system.file("small-points.pbf", package = "arcpbf")
 res <- read_pbf(fc_fp, post_process = FALSE)
@@ -232,6 +234,7 @@ set and the bounding box is computed. This requires the `sf` package to
 be available.
 
 ``` r
+
 post_process_pbf(res)
 #> Simple feature collection with 2 features and 1 field
 #> Geometry type: POLYGON
@@ -251,6 +254,7 @@ into a raw vector which can be passed to
 need this function, but it is handy for the sake of example.
 
 ``` r
+
 pbf_raw <- open_pbf(fc_fp)
 head(pbf_raw, 20)
 #>  [1] 12 ac fd 01 0a a8 fd 01 0a 08 4f 42 4a 45 43 54 49 44 12 0c
@@ -261,6 +265,7 @@ This raw vector can be turned into an R object using
 post processed.
 
 ``` r
+
 res <- process_pbf(pbf_raw)
 res
 #> $attributes
@@ -299,6 +304,7 @@ Post-processing can be applied to the result of
 [`post_process_pbf()`](reference/post_process_pbf.md).
 
 ``` r
+
 post_process_pbf(res)
 #> Simple feature collection with 2 features and 1 field
 #> Geometry type: POLYGON
@@ -314,6 +320,7 @@ post_process_pbf(res)
 applied to a list of processed pbf responses.
 
 ``` r
+
 multi_res <- list(res, res, res)
 
 post_process_pbf(multi_res)
@@ -338,6 +345,7 @@ approach of processing raw json in arcgislayers and arcgisutils. The
 below recreates the example from the README of arcgislayers.
 
 ``` r
+
 jsn <- function() {
   json_reqs <- c(
     "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties_Generalized_Boundaries/FeatureServer/0/query?outFields=%2A&where=1%3D1&outSR=%7B%22wkid%22%3A4326%7D&returnGeometry=TRUE&token=&f=json&resultOffset=0",
@@ -373,15 +381,13 @@ bench::mark(
   relative = TRUE,
   iterations = 5
 )
-#> Iterating ■■■■■■■■■■■■■■■■                  50% | ETA:  1s                                                           Iterating ■■■■■■■■■■■■■■■■                  50% | ETA:  1s
-#> Iterating ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  100% | ETA:  0s
 #> Warning: Some expressions had a GC in every iteration; so filtering is
 #> disabled.
 #> # A tibble: 2 × 6
 #>   expression   min median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <dbl>  <dbl>     <dbl>     <dbl>    <dbl>
-#> 1 jsn()       3.06   3.27      1         3.94     1.39
-#> 2 pbf()       1      1         3.94      1        1
+#> 1 jsn()       2.04   1.36      1         4.03     8.42
+#> 2 pbf()       1      1         1.42      1        1
 ```
 
 ## Internals
