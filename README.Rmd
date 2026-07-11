@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 options(max.print = 100)
 ```
 
-# arcpbf
+# arcpbf <img src="man/figures/logo.png" align="right" height="138" alt="" />
 
 `{arcpbf}` is an R package that processes [Esri FeatureCollection Protocol Buffers](https://github.com/Esri/arcgis-pbf/tree/main/proto/FeatureCollection).
 It is written in Rust and powered by the [extendr](https://github.com/extendr/extendr) library.
@@ -244,4 +244,4 @@ a Rust library built with [`prost`](https://github.com/tokio-rs/prost) to handle
 ## Future Notes
 
 Alternatively, it may make sense to write to a geoarrow array and convert to sfc 
-using {wk}. These are just thoughts. 
+using {wk}. These are just thoughts.
