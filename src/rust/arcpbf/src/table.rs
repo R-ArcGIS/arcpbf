@@ -1,8 +1,9 @@
 use crate::field_type_robj_mapper;
+use anyhow::{anyhow, Result};
 use esripbf::feature_collection_p_buffer::{FeatureResult, FieldType, Value};
 use extendr_api::prelude::*;
 
-pub fn process_table(x: FeatureResult) -> Robj {
+pub fn process_table(x: FeatureResult) -> Result<Robj> {
     let n = x.features.len();
     let n_fields = x.fields.len();
 
@@ -43,16 +44,17 @@ pub fn process_table(x: FeatureResult) -> Robj {
             let field_parser = field_type_robj_mapper(fi);
             field_parser(vi)
         })
-        .collect::<Vec<Robj>>();
+        .collect::<Result<Vec<Robj>>>()?;
 
     let row_index = (1..=n).map(|i| i as i32).collect::<Vec<i32>>();
 
-    List::from_names_and_values(field_names, res_vecs)
-        .unwrap()
+    let res = List::from_names_and_values(field_names, res_vecs)
+        .map_err(|e| anyhow!("{e}"))?
         .set_attrib("row.names", row_index)
-        .unwrap()
+        .map_err(|e| anyhow!("{e}"))?
         .set_class(&["data.frame"])
-        .unwrap()
+        .map_err(|e| anyhow!("{e}"))?
         .clone()
-        .into_robj()
+        .into_robj();
+    Ok(res)
 }

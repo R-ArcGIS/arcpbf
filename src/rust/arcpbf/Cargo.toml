@@ -10,11 +10,12 @@ crate-type = ['staticlib']
 name = 'arcpbf'
 
 [dependencies]
-extendr-api = "0.8.0"
+extendr-api = "0.9.0"
 esripbf = { path = "../esripbf" }
 prost = "0.12.1"
 once_cell = "*"
 chrono = "*"
+anyhow = "1"
 
 [profile.release]
 

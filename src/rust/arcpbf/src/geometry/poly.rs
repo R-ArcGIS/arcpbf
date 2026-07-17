@@ -1,3 +1,4 @@
+use anyhow::{anyhow, bail, Result};
 use extendr_api::prelude::*;
 
 use esripbf::esri_p_buffer::feature_collection_p_buffer::{
@@ -10,15 +11,12 @@ use core::ops::Range;
 // This is a function that is shared between Polygons and Polylines
 // The class assignment is handled and delegated by read_polyline() and read_polygon()
 // Processes a scalar geometry feature
-// TODO do not unwrap `x`
-pub fn read_poly(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scale) -> List {
+pub fn read_poly(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scale) -> Result<List> {
     // if none return an empty list
-    if x.is_none() {
-        return list!();
-    }
-    let geoms = match x.unwrap() {
-        CompressedGeometry::Geometry(g) => g,
-        CompressedGeometry::ShapeBuffer(_) => todo!(),
+    let geoms = match x {
+        None => return Ok(list!()),
+        Some(CompressedGeometry::Geometry(g)) => g,
+        Some(CompressedGeometry::ShapeBuffer(_)) => bail!("ShapeBuffer geometry is not supported"),
     };
 
     let lens = geoms.lengths;
@@ -45,21 +43,31 @@ pub fn read_poly(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scale
         })
         .collect::<Vec<_>>();
 
-    List::from_values(partitions)
+    Ok(List::from_values(partitions))
 }
 
-pub fn read_polygon(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scale) -> Robj {
-    read_poly(x, trans, scale)
+pub fn read_polygon(
+    x: Option<CompressedGeometry>,
+    trans: &Translate,
+    scale: &Scale,
+) -> Result<Robj> {
+    let res = read_poly(x, trans, scale)?
         .set_class(&["XY", "POLYGON", "sfg"])
-        .unwrap()
+        .map_err(|e| anyhow!("{e}"))?
         .clone()
-        .into_robj()
+        .into_robj();
+    Ok(res)
 }
 
-pub fn read_polyline(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scale) -> Robj {
-    read_poly(x, trans, scale)
+pub fn read_polyline(
+    x: Option<CompressedGeometry>,
+    trans: &Translate,
+    scale: &Scale,
+) -> Result<Robj> {
+    let res = read_poly(x, trans, scale)?
         .set_class(&["XY", "MULTILINESTRING", "sfg"])
-        .unwrap()
+        .map_err(|e| anyhow!("{e}"))?
         .clone()
-        .into_robj()
+        .into_robj();
+    Ok(res)
 }
