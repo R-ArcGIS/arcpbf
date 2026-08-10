@@ -54,7 +54,7 @@ post_process_single <- function(x, use_sf) {
   } else if (use_sf && !is.data.frame(x) && is.list(x) && !is.null(names(x))) {
     rlang::check_installed("sf", "to create `sf` objects.")
 
-    sf_crs <- crs(x[["sr"]])
+    sf_crs <- arcgisutils::from_spatial_reference(x[["sr"]])
     sf::st_sf(
       x[["attributes"]],
       geometry = x[["geometry"]],
@@ -92,13 +92,4 @@ post_process_list <- function(x, use_sf) {
   }
 
   x
-}
-
-# helper function to determine which component of the spatialReference needs
-# to be passed to sf::st_crs() to create the spatial reference object
-#' @importFrom rlang %||%
-crs <- function(sr) {
-  possible_crs <- sr[c("latest_wkid", "wkid", "wkt")]
-  valid_crs_idx <- which(!is.na(possible_crs))[1]
-  possible_crs[[valid_crs_idx]] %||% NA
 }

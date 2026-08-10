@@ -1,5 +1,6 @@
 # arcpbf 0.2.0
 
+* Fixes bug where datasets with CRSs within the ESRI authority would be returned with missing CRSs when converted to sf objects.
 * Adds support for 64 bit integers closing <https://github.com/R-ArcGIS/arcpbf/issues/15> h/t to @jjoeldaniel for reporting.
 
 # arcpbf 0.1.7

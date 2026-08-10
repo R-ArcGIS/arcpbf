@@ -1,9 +1,12 @@
 Package: arcpbf
 Title: Process ArcGIS Protocol Buffer FeatureCollections
 Version: 0.2.0
-Authors@R: 
+Authors@R: c(
     person("Josiah", "Parry", , "josiah.parry@gmail.com", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0001-9910-865X"))
+           comment = c(ORCID = "0000-0001-9910-865X")),
+    person("Ryan", "Zomorrodi", , "ryanzomorrodi@gmail.com", role = "ctb",
+           comment = c(ORCID = "0009-0003-6417-5985"))
+  )
 Description: Fast processing of ArcGIS FeatureCollection protocol buffers in R.
   It is designed to work seamlessly with 'httr2' and integrates with 'sf'. 
 License: Apache License (>= 2)
