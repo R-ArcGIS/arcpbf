@@ -64,7 +64,7 @@ head(post_process_pbf(fc))
 #> Geometry type: POLYGON
 #> Dimension:     XY
 #> Bounding box:  xmin: -17298700 ymin: 2216212 xmax: -17260020 ymax: 2261306
-#> Projected CRS: WGS 84 / Pseudo-Mercator
+#> Projected CRS: WGS_1984_Web_Mercator_Auxiliary_Sphere
 #>          County                       geometry
 #> 1 Hawaii County POLYGON ((-17264972 2244291...
 #> 2 Hawaii County POLYGON ((-17264972 2244291...
