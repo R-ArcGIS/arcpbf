@@ -2,17 +2,15 @@ use extendr_api::prelude::*;
 mod geometry;
 mod parse;
 use parse::field_type_robj_mapper;
-
 mod table;
 use process::{process_counts, process_feature_result, process_oid};
-
 mod process;
-
-use esripbf::esri_p_buffer::FeatureCollectionPBuffer;
-use esripbf::feature_collection_p_buffer::query_result::Results;
-use std::io::Cursor;
-
+use anyhow::{anyhow, Result};
+use esripbf::{
+    esri_p_buffer::FeatureCollectionPBuffer, feature_collection_p_buffer::query_result::Results,
+};
 use prost::Message;
+use std::io::Cursor;
 
 #[extendr]
 /// Read a pbf file as a raw vector
@@ -30,15 +28,20 @@ use prost::Message;
 /// oid_raw <- open_pbf(oid_fp)
 /// tbl_raw <- open_pbf(tbl_fp)
 /// fc_raw <- open_pbf(fc_fp)
-fn open_pbf(path: &str) -> Raw {
-    let ff = std::fs::read(path).unwrap();
+fn open_pbf(path: &str) -> Result<Raw> {
+    let ff = std::fs::read(path).map_err(|e| anyhow!("failed to read pbf file {path}: {e}"))?;
     let crs = Cursor::new(ff);
-    Raw::from_bytes(&crs.into_inner())
+    Ok(Raw::from_bytes(&crs.into_inner()))
 }
 
-fn process_pbf_(proto: &[u8]) -> Robj {
-    let fc = FeatureCollectionPBuffer::decode(proto).unwrap();
-    let res = fc.query_result.unwrap().results.unwrap();
+fn process_pbf_(proto: &[u8]) -> Result<Robj> {
+    let fc = FeatureCollectionPBuffer::decode(proto)
+        .map_err(|e| anyhow!("failed to decode FeatureCollectionPBuffer: {e}"))?;
+    let res = fc
+        .query_result
+        .ok_or_else(|| anyhow!("pbf is missing query_result"))?
+        .results
+        .ok_or_else(|| anyhow!("pbf query_result is missing results"))?;
 
     match res {
         Results::FeatureResult(fr) => process_feature_result(fr),
@@ -52,7 +55,7 @@ fn process_pbf_(proto: &[u8]) -> Robj {
 ///
 /// Process a pbf from a raw vector or a list of raw vectors.
 ///
-/// @param proto either a raw vector or a list of raw vectors containing a FeatureCollection pbf    
+/// @param proto either a raw vector or a list of raw vectors containing a FeatureCollection pbf
 ///
 /// @details
 ///
@@ -111,32 +114,42 @@ fn process_pbf_(proto: &[u8]) -> Robj {
 /// # feature collection with geometry
 /// fc_raw <- open_pbf(fc_fp)
 /// process_pbf(fc_raw)
-fn process_pbf(proto: Robj) -> Robj {
+fn process_pbf(proto: Robj) -> Result<Robj> {
     if proto.is_raw() {
-        process_pbf_(proto.as_raw_slice().unwrap())
+        let bits = proto
+            .as_raw_slice()
+            .ok_or_else(|| anyhow!("proto raw vector could not be read as bytes"))?;
+        process_pbf_(bits)
     } else if proto.is_list() {
         let res_vec = proto
             .as_list()
-            .unwrap()
+            .ok_or_else(|| anyhow!("proto could not be read as a list"))?
             .into_iter()
             .map(|(_, bi)| {
-                let bits = bi.as_raw_slice().unwrap();
+                let bits = bi
+                    .as_raw_slice()
+                    .ok_or_else(|| anyhow!("list element could not be read as bytes"))?;
                 process_pbf_(bits)
             })
-            .collect::<Vec<Robj>>();
+            .collect::<Result<Vec<Robj>>>()?;
 
-        List::from_values(res_vec).into()
+        Ok(List::from_values(res_vec).into())
     } else {
-        ().into()
+        Ok(().into())
     }
 }
 
 #[extendr]
-fn read_pbf_(path: &str) -> Robj {
-    let ff = std::fs::read(path).unwrap();
+fn read_pbf_(path: &str) -> Result<Robj> {
+    let ff = std::fs::read(path).map_err(|e| anyhow!("failed to read pbf file {path}: {e}"))?;
     let crs = Cursor::new(ff);
-    let fc = FeatureCollectionPBuffer::decode(crs).unwrap();
-    let res = fc.query_result.unwrap().results.unwrap();
+    let fc = FeatureCollectionPBuffer::decode(crs)
+        .map_err(|e| anyhow!("failed to decode FeatureCollectionPBuffer: {e}"))?;
+    let res = fc
+        .query_result
+        .ok_or_else(|| anyhow!("pbf is missing query_result"))?
+        .results
+        .ok_or_else(|| anyhow!("pbf query_result is missing results"))?;
 
     // There are 3 different types of queries that we can expect:
     // Feature Query Results, ObjectID results, or FeatureCount results
@@ -147,40 +160,60 @@ fn read_pbf_(path: &str) -> Robj {
     }
 }
 
+// Attempts to process a single httr2_response element.
+// Returns Ok(None) for responses that are intentionally skipped (non-200,
+// wrong content type, etc.) and Err(_) for malformed responses.
+fn multi_resp_process_one(ri: Robj) -> Result<Option<Robj>> {
+    if !ri.inherits("httr2_response") {
+        return Ok(None);
+    }
+
+    let ri = ri
+        .as_list()
+        .ok_or_else(|| anyhow!("httr2_response could not be read as a list"))?;
+
+    let status = ri
+        .dollar("status_code")
+        .map_err(|e| anyhow!("{e}"))?
+        .as_integer()
+        .ok_or_else(|| anyhow!("httr2_response status_code is not an integer"))?;
+
+    if status != 200 {
+        return Ok(None);
+    }
+
+    let content_type = ri
+        .dollar("headers")
+        .map_err(|e| anyhow!("{e}"))?
+        .dollar("content-type")
+        .map_err(|e| anyhow!("{e}"))?
+        .as_str()
+        .ok_or_else(|| anyhow!("httr2_response content-type is not a string"))?;
+
+    if content_type != "application/x-protobuf" {
+        return Ok(None);
+    }
+
+    let binding = ri.dollar("body").map_err(|e| anyhow!("{e}"))?;
+
+    let body = binding
+        .as_raw_slice()
+        .ok_or_else(|| anyhow!("httr2_response body could not be read as bytes"))?;
+
+    process_pbf_(body).map(Some)
+}
+
 #[extendr]
 fn multi_resp_process_(resps: List) -> List {
     let res_vec = resps
         .into_iter()
-        .map(|(_, ri)| {
-            if !ri.inherits("httr2_response") {
-                return ().into_robj();
+        .map(|(_, ri)| match multi_resp_process_one(ri) {
+            Ok(Some(robj)) => robj,
+            Ok(None) => ().into_robj(),
+            Err(e) => {
+                eprintln!("Warning message:\nFailed to process response: {e}");
+                ().into_robj()
             }
-
-            let ri = ri.as_list().unwrap();
-
-            let status = ri.dollar("status_code").unwrap().as_integer().unwrap();
-
-            if status != 200 {
-                return ().into_robj();
-            }
-
-            let content_type = ri
-                .dollar("headers")
-                .unwrap()
-                .dollar("content-type")
-                .unwrap()
-                .as_str()
-                .unwrap();
-
-            if content_type != "application/x-protobuf" {
-                return ().into_robj();
-            }
-
-            let binding = ri.dollar("body").unwrap();
-
-            let body = binding.as_raw_slice().unwrap();
-
-            process_pbf_(body)
         })
         .collect::<Vec<_>>();
 

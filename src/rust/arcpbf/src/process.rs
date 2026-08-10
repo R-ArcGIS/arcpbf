@@ -1,13 +1,14 @@
 use crate::parse::parse_spatial_ref;
 use crate::table::process_table;
 use crate::{field_type_robj_mapper, geometry};
+use anyhow::{anyhow, bail, Result};
 use extendr_api::prelude::*;
 
 use esripbf::feature_collection_p_buffer::{
     CountResult, FeatureResult, FieldType, GeometryType, ObjectIdsResult, Value,
 };
 
-pub fn process_layer(fr: FeatureResult) -> Robj {
+pub fn process_layer(fr: FeatureResult) -> Result<Robj> {
     // get nrow and ncol here
     let n = fr.features.len();
     let n_fields = fr.fields.len();
@@ -19,8 +20,10 @@ pub fn process_layer(fr: FeatureResult) -> Robj {
         GeometryType::EsriGeometryTypeMultipoint => geometry::read_multipoint,
         GeometryType::EsriGeometryTypePolyline => geometry::read_polyline,
         GeometryType::EsriGeometryTypePolygon => geometry::read_polygon,
-        GeometryType::EsriGeometryTypeMultipatch => todo!(),
-        GeometryType::EsriGeometryTypeNone => todo!(),
+        GeometryType::EsriGeometryTypeMultipatch => {
+            bail!("Multipatch geometries are not supported")
+        }
+        GeometryType::EsriGeometryTypeNone => bail!("Geometry type 'None' is not supported"),
     };
 
     let sfc_class = match fr.geometry_type() {
@@ -28,13 +31,15 @@ pub fn process_layer(fr: FeatureResult) -> Robj {
         GeometryType::EsriGeometryTypeMultipoint => ["sfc_MULTIPOINT", "sfc"],
         GeometryType::EsriGeometryTypePolyline => ["sfc_MULTILINESTRING", "sfc"],
         GeometryType::EsriGeometryTypePolygon => ["sfc_POLYGON", "sfc"],
-        _ => unreachable!(),
+        _ => bail!("Unsupported geometry type for sfc class assignment"),
     };
 
     // extract the spatial reference
     // it needs to be returned as a list object for construction
     // in sfc object
-    let sr = fr.spatial_reference.unwrap();
+    let sr = fr
+        .spatial_reference
+        .ok_or_else(|| anyhow!("FeatureResult is missing a spatial_reference"))?;
 
     let sr_list = parse_spatial_ref(sr);
 
@@ -72,16 +77,16 @@ pub fn process_layer(fr: FeatureResult) -> Robj {
             atrs.into_iter()
                 .enumerate()
                 .for_each(|(i, ai)| attr_vecs[i].push(ai));
-            geom_processor(xi.compressed_geometry, &trans, &scale).into_robj()
+            geom_processor(xi.compressed_geometry, &trans, &scale)
         })
-        .collect::<Vec<Robj>>();
+        .collect::<Result<Vec<Robj>>>()?;
 
     // we create an empty bounding box to assign to the sfc class object
     // after processing, we will calculate the bbox
     let empty_bbox = Doubles::from_values([Rfloat::na(), Rfloat::na(), Rfloat::na(), Rfloat::na()])
         .into_robj()
         .set_names(&["xmin", "ymin", "xmax", "ymax"])
-        .unwrap()
+        .map_err(|e| anyhow!("{e}"))?
         .clone();
 
     // recreate the NA CRS. This will be populated later
@@ -90,22 +95,22 @@ pub fn process_layer(fr: FeatureResult) -> Robj {
         wkt = Strings::from(Rstr::na())
     )
     .set_class(["crs"])
-    .unwrap()
+    .map_err(|e| anyhow!("{e}"))?
     .clone()
     .into_robj();
 
     let geoms = geoms
         .into_robj()
         .set_class(sfc_class)
-        .unwrap()
+        .map_err(|e| anyhow!("{e}"))?
         .set_attrib("precision", 0f64)
-        .unwrap()
+        .map_err(|e| anyhow!("{e}"))?
         .set_attrib("n_empty", 0i32)
-        .unwrap()
+        .map_err(|e| anyhow!("{e}"))?
         .set_attrib("bbox", empty_bbox)
-        .unwrap()
+        .map_err(|e| anyhow!("{e}"))?
         .set_attrib("crs", na_crs)
-        .unwrap()
+        .map_err(|e| anyhow!("{e}"))?
         .clone();
 
     // iterate over the
@@ -116,28 +121,28 @@ pub fn process_layer(fr: FeatureResult) -> Robj {
             let field_parser = field_type_robj_mapper(fi);
             field_parser(vi)
         })
-        .collect::<Vec<Robj>>();
+        .collect::<Result<Vec<Robj>>>()?;
 
     let row_index = (1..=n).map(|i| i as i32).collect::<Vec<i32>>();
 
     let attr_df = List::from_names_and_values(field_names, res_vecs)
-        .unwrap()
+        .map_err(|e| anyhow!("{e}"))?
         .set_attrib("row.names", row_index)
-        .unwrap()
+        .map_err(|e| anyhow!("{e}"))?
         .set_class(&["data.frame"])
-        .unwrap()
+        .map_err(|e| anyhow!("{e}"))?
         .clone();
 
     let res = list!(attributes = attr_df, geometry = geoms, sr = sr_list);
 
-    res.into_robj()
+    Ok(res.into_robj())
 }
 
-pub fn process_feature_result(fr: FeatureResult) -> Robj {
+pub fn process_feature_result(fr: FeatureResult) -> Result<Robj> {
     // for now we will return NULL if z or m dimensions are present
     if fr.has_m || fr.has_z {
         eprintln!("Warning message:\nZ and M dimensions are not supported at this time.");
-        return ().into_robj();
+        return Ok(().into_robj());
     }
     // If fr.spatial_reference is None then its a table
     // If Some() then its a feature layer
@@ -148,20 +153,19 @@ pub fn process_feature_result(fr: FeatureResult) -> Robj {
     //      - they are not supported
     //
     // transform informatoion used when processing geometry
-    // need to remove unwraps probably for tables
 
     if fr.spatial_reference.is_none() {
-        return process_table(fr);
+        process_table(fr)
     } else {
         process_layer(fr)
     }
 }
 
-pub fn process_counts(x: CountResult) -> Robj {
-    Rfloat::from(x.count as f64).into_robj()
+pub fn process_counts(x: CountResult) -> Result<Robj> {
+    Ok(Rfloat::from(x.count as f64).into_robj())
 }
 
-pub fn process_oid(x: ObjectIdsResult) -> Robj {
+pub fn process_oid(x: ObjectIdsResult) -> Result<Robj> {
     let ids = x
         .object_ids
         .into_iter()
@@ -172,12 +176,13 @@ pub fn process_oid(x: ObjectIdsResult) -> Robj {
         .map(|i| Rint::from(i as i32))
         .collect::<Integers>();
 
-    List::from_names_and_values([x.object_id_field_name], [ids])
-        .unwrap()
+    let res = List::from_names_and_values([x.object_id_field_name], [ids])
+        .map_err(|e| anyhow!("{e}"))?
         .set_class(&["data.frame"])
-        .unwrap()
+        .map_err(|e| anyhow!("{e}"))?
         .set_attrib("row.names", row_ind)
-        .unwrap()
+        .map_err(|e| anyhow!("{e}"))?
         .clone()
-        .into()
+        .into();
+    Ok(res)
 }

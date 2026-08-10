@@ -1,101 +1,107 @@
 // use std::cell::OnceCell;
 use once_cell::sync::OnceCell;
 
+use anyhow::{anyhow, bail, Result};
 use chrono::NaiveDateTime;
 use esripbf::esri_p_buffer::feature_collection_p_buffer::value::ValueType;
 use esripbf::feature_collection_p_buffer::{FieldType, SpatialReference, Value};
 use extendr_api::prelude::*;
 
 // Functions to parse each field type
-pub fn parse_small_ints(x: Vec<Value>) -> Doubles {
+pub fn parse_small_ints(x: Vec<Value>) -> Result<Doubles> {
     let is_date: OnceCell<bool> = OnceCell::new();
     // println!("starting once_cell val {:?}", is_date);
     let mut res_vec = x
         .into_iter()
         .map(|xi| match xi.value_type {
             Some(x) => match x {
-                ValueType::SintValue(i) => Rfloat::from(i),
+                ValueType::SintValue(i) => Ok(Rfloat::from(i)),
                 ValueType::StringValue(s) => {
                     let _ = is_date.set(true);
                     let maybe_date = chrono::NaiveDate::parse_from_str(&s, "%Y-%m-%d");
                     match maybe_date {
-                        Ok(d) => Rfloat::from(NaiveDateTime::from(d).and_utc().timestamp() as i32),
+                        Ok(d) => Ok(Rfloat::from(NaiveDateTime::from(d).and_utc().timestamp() as i32)),
 
-                        Err(_) => Rfloat::na(),
+                        Err(_) => Ok(Rfloat::na()),
                     }
                 },
-                ValueType::Int64Value(i) => Rfloat::from(i as f64),
-                ValueType::Sint64Value(i) => Rfloat::from(i as f64),
+                ValueType::Int64Value(i) => Ok(Rfloat::from(i as f64)),
+                ValueType::Sint64Value(i) => Ok(Rfloat::from(i as f64)),
                 _ => {
-                    throw_r_error(format!("Encountered unexpected value type of {x:?} please report an issue at https://github.com/R-ArcGIS/arcpbf/issues/new"))
+                    bail!("Encountered unexpected value type of {x:?} please report an issue at https://github.com/R-ArcGIS/arcpbf/issues/new")
                 },
             },
-            None => Rfloat::na(),
+            None => Ok(Rfloat::na()),
         })
-        .collect::<Doubles>();
+        .collect::<Result<Doubles>>()?;
 
     // rprintln!("{:?}", is_date);
     if is_date.get().is_some_and(|x| *x) {
-        let date_res = res_vec.set_class(["POSIXct", "POSIXt"]).unwrap().clone();
-        return date_res;
+        let date_res = res_vec
+            .set_class(["POSIXct", "POSIXt"])
+            .map_err(|e| anyhow!("{e}"))?
+            .clone();
+        return Ok(date_res);
     }
-    res_vec
+    Ok(res_vec)
 }
 
-pub fn parse_big_ints(x: Vec<Value>) -> Doubles {
+pub fn parse_big_ints(x: Vec<Value>) -> Result<Doubles> {
     x.into_iter()
         .map(|xi| match xi.value_type {
             Some(x) => match x {
-                ValueType::Int64Value(i) => Rfloat::from(i as f64),
-                ValueType::Uint64Value(i) => Rfloat::from(i as f64),
-                ValueType::Sint64Value(i) => Rfloat::from(i as f64),
-                ValueType::UintValue(i) => Rfloat::from(i as f64),
-                _ => unreachable!(),
+                ValueType::Int64Value(i) => Ok(Rfloat::from(i as f64)),
+                ValueType::Uint64Value(i) => Ok(Rfloat::from(i as f64)),
+                ValueType::Sint64Value(i) => Ok(Rfloat::from(i as f64)),
+                ValueType::UintValue(i) => Ok(Rfloat::from(i as f64)),
+                _ => bail!("Encountered unexpected value type of {x:?} for a big integer field"),
             },
-            None => Rfloat::na(),
+            None => Ok(Rfloat::na()),
         })
-        .collect::<Doubles>()
+        .collect::<Result<Doubles>>()
 }
 
-pub fn parse_floats(x: Vec<Value>) -> Doubles {
+pub fn parse_floats(x: Vec<Value>) -> Result<Doubles> {
     x.into_iter()
         .map(|xi| match xi.value_type {
             Some(x) => match x {
-                ValueType::FloatValue(f) => Rfloat::from(f as f64),
-                ValueType::DoubleValue(f) => Rfloat::from(f),
-                _ => unreachable!(),
+                ValueType::FloatValue(f) => Ok(Rfloat::from(f as f64)),
+                ValueType::DoubleValue(f) => Ok(Rfloat::from(f)),
+                _ => bail!("Encountered unexpected value type of {x:?} for a float field"),
             },
-            None => Rfloat::na(),
+            None => Ok(Rfloat::na()),
         })
-        .collect::<Doubles>()
+        .collect::<Result<Doubles>>()
 }
 
-pub fn parse_strings(x: Vec<Value>) -> Strings {
+pub fn parse_strings(x: Vec<Value>) -> Result<Strings> {
     x.into_iter()
         .map(|xi| match xi.value_type {
             Some(x) => match x {
-                ValueType::StringValue(xx) => Rstr::from(xx),
-                _ => unreachable!(),
+                ValueType::StringValue(xx) => Ok(Rstr::from(xx)),
+                _ => bail!("Encountered unexpected value type of {x:?} for a string field"),
             },
-            None => Rstr::na(),
+            None => Ok(Rstr::na()),
         })
-        .collect::<Strings>()
+        .collect::<Result<Strings>>()
 }
 
-pub fn parse_date(x: Vec<Value>) -> Robj {
-    x.into_iter()
+pub fn parse_date(x: Vec<Value>) -> Result<Robj> {
+    let res = x
+        .into_iter()
         .map(|xi| match xi.value_type {
             Some(x) => match x {
-                ValueType::Sint64Value(i) => Rfloat::from((i / 1000_i64) as f64),
-                _ => unreachable!(),
+                ValueType::Sint64Value(i) => Ok(Rfloat::from((i / 1000_i64) as f64)),
+                _ => bail!("Encountered unexpected value type of {x:?} for a date field"),
             },
-            None => Rfloat::na(),
+            None => Ok(Rfloat::na()),
         })
-        .collect::<Doubles>()
+        .collect::<Result<Doubles>>()?
         .into_robj()
         .set_class(["POSIXct", "POSIXt"])
-        .unwrap()
-        .clone()
+        .map_err(|e| anyhow!("{e}"))?
+        .clone();
+    Ok(res)
 }
 
 pub fn parse_spatial_ref(x: SpatialReference) -> List {
@@ -155,22 +161,22 @@ pub fn parse_blob(x: Vec<Value>) -> Robj {
 }
 
 // map field type to parser
-pub fn field_type_robj_mapper(fi: &FieldType) -> fn(Vec<Value>) -> Robj {
+pub fn field_type_robj_mapper(fi: &FieldType) -> fn(Vec<Value>) -> Result<Robj> {
     match fi {
-        FieldType::EsriFieldTypeSmallInteger => |x| parse_small_ints(x).into_robj(),
-        FieldType::EsriFieldTypeInteger => |x| parse_small_ints(x).into_robj(),
-        FieldType::EsriFieldTypeSingle => |x| parse_floats(x).into_robj(),
-        FieldType::EsriFieldTypeDouble => |x| parse_floats(x).into_robj(),
-        FieldType::EsriFieldTypeString => |x| parse_strings(x).into_robj(),
-        FieldType::EsriFieldTypeGuid => |x| parse_strings(x).into_robj(),
-        FieldType::EsriFieldTypeOid => |x| parse_big_ints(x).into_robj(),
+        FieldType::EsriFieldTypeSmallInteger => |x| Ok(parse_small_ints(x)?.into_robj()),
+        FieldType::EsriFieldTypeInteger => |x| Ok(parse_small_ints(x)?.into_robj()),
+        FieldType::EsriFieldTypeSingle => |x| Ok(parse_floats(x)?.into_robj()),
+        FieldType::EsriFieldTypeDouble => |x| Ok(parse_floats(x)?.into_robj()),
+        FieldType::EsriFieldTypeString => |x| Ok(parse_strings(x)?.into_robj()),
+        FieldType::EsriFieldTypeGuid => |x| Ok(parse_strings(x)?.into_robj()),
+        FieldType::EsriFieldTypeOid => |x| Ok(parse_big_ints(x)?.into_robj()),
         FieldType::EsriFieldTypeDate => |x| parse_date(x),
-        FieldType::EsriFieldTypeGlobalId => |x| parse_strings(x).into_robj(),
-        FieldType::EsriFieldTypeBlob => |x| parse_blob(x),
+        FieldType::EsriFieldTypeGlobalId => |x| Ok(parse_strings(x)?.into_robj()),
+        FieldType::EsriFieldTypeBlob => |x| Ok(parse_blob(x)),
 
         _ => |x| {
             eprintln!("This field type is not supported.\nPlease report an issue at https://github.com/R-ArcGIS/arcpbf/issues\nProvide the FeatureService URL if possible");
-            List::new(x.len()).into_robj()
+            Ok(List::new(x.len()).into_robj())
         },
     }
 }

@@ -1,11 +1,14 @@
-use esripbf::{*, feature_collection_p_buffer::{FeatureResult, feature::CompressedGeometry, value::ValueType}};
+use esripbf::{
+    feature_collection_p_buffer::{feature::CompressedGeometry, value::ValueType, FeatureResult},
+    *,
+};
 use prost::Message;
 use std::io::Cursor;
 
 use geo_types::Coord;
 
-use esripbf::feature_collection_p_buffer::query_result::Results;
 use esri_p_buffer::feature_collection_p_buffer::*;
+use esripbf::feature_collection_p_buffer::query_result::Results;
 
 use extendr_api::prelude::*;
 
@@ -15,7 +18,7 @@ fn main() -> std::io::Result<()> {
     let fc = FeatureCollectionPBuffer::decode(crs.clone()).unwrap();
     let res = fc.query_result.unwrap().results.unwrap();
 
-    // There are 3 different types of queries that we can expect: 
+    // There are 3 different types of queries that we can expect:
     // Feature Query Results, ObjectID results, or FeatureCount results
     let fr = if let Results::FeatureResult(r) = res {
         r
@@ -24,15 +27,17 @@ fn main() -> std::io::Result<()> {
     };
 
     // preview fields
-    // println!("CRS: {:#?}", fr.spatial_reference); 
+    // println!("CRS: {:#?}", fr.spatial_reference);
     // println!("{:?}", fr.geohash_field_name);
     println!("{:#?}", fr.fields);
 
-
-    let n = fr.features.len(); 
+    let n = fr.features.len();
     let n_fields = fr.fields.len();
 
-    let field_types = fr.fields.iter().map(|fi| fi.field_type())
+    let field_types = fr
+        .fields
+        .iter()
+        .map(|fi| fi.field_type())
         .collect::<Vec<FieldType>>();
 
     // pre-allocate vectors to store attributes
@@ -45,45 +50,39 @@ fn main() -> std::io::Result<()> {
     let feats = fr.features;
     let atts = fr.values;
 
-    // iterate through features and push into attr_vecs 
+    // iterate through features and push into attr_vecs
     // should do the same for coordinates during this iteration but not at the moment
-    feats
-        .into_iter()
-        .for_each(|xi| {
-            let atrs = xi.attributes;
-            atrs
-                .into_iter()
-                .enumerate()
-                .for_each(|(i, ai)| attr_vecs[i].push(ai))
-        });
+    feats.into_iter().for_each(|xi| {
+        let atrs = xi.attributes;
+        atrs.into_iter()
+            .enumerate()
+            .for_each(|(i, ai)| attr_vecs[i].push(ai))
+    });
 
-
-    // iterate over the 
+    // iterate over the
     let res_vecs = attr_vecs
         .into_iter()
         .zip(field_types.iter())
         .map(|(vi, fi)| {
             let field_parser = field_type_robj_mapper(fi);
             field_parser(vi)
-        }).collect::<Vec<Robj>>();
+        })
+        .collect::<Vec<Robj>>();
 
     println!("{:?}", res_vecs);
-
-    
 
     // grabbed a single feature
     // let f = &feats[10].to_owned();
     // println!("{:?}", feats[10]);
 
     // let addtl_stride = (fr.has_m as usize) + (fr.has_z as usize);
-    
-    // // For a single gometry we need 
+
+    // // For a single gometry we need
     // let crds = if let CompressedGeometry::Geometry(g) = f.clone().compressed_geometry.unwrap() {
     //     g
     // } else {
     //     todo!()
     // };
-
 
     // let transf = fr.transform.unwrap();
     // println!("{:#?}", transf);
@@ -94,7 +93,7 @@ fn main() -> std::io::Result<()> {
     // let res2 = feats.into_iter()
     //     .map(|xi| {
     //         let f = xi.compressed_geometry.unwrap();
-            
+
     //         match f {
     //             CompressedGeometry::Geometry(f) => transform_coords(f.coords, &translate, &scale),
     //             CompressedGeometry::ShapeBuffer(_) => vec![]
@@ -103,8 +102,6 @@ fn main() -> std::io::Result<()> {
     //     .collect::<Vec<Vec<Coord>>>();
 
     // println!("{:?}", res2);
-
-    
 
     Ok(())
 }
@@ -121,15 +118,13 @@ fn field_type_robj_mapper(fi: &FieldType) -> fn(Vec<Value>) -> Robj {
         FieldType::EsriFieldTypeGuid => |x| parse_strings(x).into_robj(),
         FieldType::EsriFieldTypeOid => |x| parse_big_ints(x).into_robj(),
         FieldType::EsriFieldTypeDate => |x| parse_big_ints(x).into_robj(),
-        _ => todo!()
-        // FieldType::EsriFieldTypeXml => todo!(),
-        // FieldType::EsriFieldTypeRaster => todo!(),
-        // FieldType::EsriFieldTypeBlob => todo!(),
-        // FieldType::EsriFieldTypeGlobalId => todo!(),
-        // FieldType::EsriFieldTypeGeometry => todo!(),
+        _ => todo!(), // FieldType::EsriFieldTypeXml => todo!(),
+                      // FieldType::EsriFieldTypeRaster => todo!(),
+                      // FieldType::EsriFieldTypeBlob => todo!(),
+                      // FieldType::EsriFieldTypeGlobalId => todo!(),
+                      // FieldType::EsriFieldTypeGeometry => todo!(),
     }
 }
-
 
 use esri_p_buffer::feature_collection_p_buffer::{Scale, Translate};
 
@@ -138,7 +133,7 @@ fn transform_coords(input: Vec<i64>, trans: &Translate, scale: &Scale) -> Vec<Co
     decode_delta_2d(input)
         .into_iter()
         .map(|xi| transform_coord(xi, &trans, &scale))
-        .collect::<Vec<Coord>>() 
+        .collect::<Vec<Coord>>()
 }
 
 // Transforms a single coordinate
@@ -148,30 +143,26 @@ fn transform_coord(input: [i64; 2], trans: &Translate, scale: &Scale) -> Coord {
     Coord::from([x, y])
 }
 
-
 fn decode_delta_2d(mut x: Vec<i64>) -> Vec<[i64; 2]> {
     let init_x = x[0];
     let init_y = x[1];
 
-    x
-        .iter_mut()
+    x.iter_mut()
         .enumerate()
         .skip(2)
         .map(|(i, value)| *value += if i % 2 == 0 { init_x } else { init_y })
         .for_each(drop);
-    
+
     x.chunks(2)
         .into_iter()
-        .map(|c| {  
-            [c[0], c[1]]
-        })
-        .collect::<Vec<[i64;2]>>()
+        .map(|c| [c[0], c[1]])
+        .collect::<Vec<[i64; 2]>>()
 }
 
-// Ideally: 
+// Ideally:
 // Return list(geometry, list(attributes), spatialReference)
 
-// Need pbf files for: 
+// Need pbf files for:
 // Polyline
 // Point & Multipoint
 // Z dimensions
