@@ -1,5 +1,12 @@
 # Changelog
 
+## arcpbf 0.3.0
+
+- Improves error handling when encountering parse errors.
+- Adds support for Windows ARM
+  <https://github.com/R-ArcGIS/arcpbf/pull/20>
+  [@jeroen](https://github.com/jeroen)
+
 ## arcpbf 0.2.0
 
 CRAN release: 2025-10-22
