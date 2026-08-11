@@ -1,3 +1,8 @@
+# arcpbf 0.3.0
+
+* Improves error handling when encountering parse errors.
+* Adds support for Windows ARM <https://github.com/R-ArcGIS/arcpbf/pull/20> @jeroen
+
 # arcpbf 0.2.0
 
 * Fixes bug where datasets with CRSs within the ESRI authority would be returned with missing CRSs when converted to sf objects.

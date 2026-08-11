@@ -1,6 +1,6 @@
 Package: arcpbf
 Title: Process ArcGIS Protocol Buffer FeatureCollections
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(
     person("Josiah", "Parry", , "josiah.parry@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-9910-865X")),
@@ -8,7 +8,7 @@ Authors@R: c(
            comment = c(ORCID = "0009-0003-6417-5985"))
   )
 Description: Fast processing of ArcGIS FeatureCollection protocol buffers in R.
-  It is designed to work seamlessly with 'httr2' and integrates with 'sf'. 
+  It is designed to work seamlessly with 'httr2' and integrates with 'sf'.
 License: Apache License (>= 2)
 URL: https://r.esri.com/arcpbf/, https://github.com/R-ArcGIS/arcpbf
 BugReports: https://github.com/R-ArcGIS/arcpbf/issues
@@ -18,13 +18,13 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Config/rextendr/version: 0.3.1.9001
 SystemRequirements: Cargo (Rust's package manager), rustc >= 1.70
-Suggests: 
+Suggests:
     httr2,
     sf,
     testthat (>= 3.0.0)
-Imports: 
+Imports:
     arcgisutils (>= 0.3.0),
     rlang
 Config/testthat/edition: 3
-Depends: 
+Depends:
     R (>= 4.2)
