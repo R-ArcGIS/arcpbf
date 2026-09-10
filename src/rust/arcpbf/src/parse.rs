@@ -1,30 +1,16 @@
-// use std::cell::OnceCell;
-use once_cell::sync::OnceCell;
 
 use anyhow::{anyhow, bail, Result};
-use chrono::NaiveDateTime;
 use esripbf::esri_p_buffer::feature_collection_p_buffer::value::ValueType;
 use esripbf::feature_collection_p_buffer::{FieldType, SpatialReference, Value};
 use extendr_api::prelude::*;
 
 // Functions to parse each field type
 pub fn parse_small_ints(x: Vec<Value>) -> Result<Doubles> {
-    let is_date: OnceCell<bool> = OnceCell::new();
-    // println!("starting once_cell val {:?}", is_date);
-    let mut res_vec = x
-        .into_iter()
+    x.into_iter()
         .map(|xi| match xi.value_type {
             Some(x) => match x {
                 ValueType::SintValue(i) => Ok(Rfloat::from(i)),
-                ValueType::StringValue(s) => {
-                    let _ = is_date.set(true);
-                    let maybe_date = chrono::NaiveDate::parse_from_str(&s, "%Y-%m-%d");
-                    match maybe_date {
-                        Ok(d) => Ok(Rfloat::from(NaiveDateTime::from(d).and_utc().timestamp() as i32)),
-
-                        Err(_) => Ok(Rfloat::na()),
-                    }
-                },
+                ValueType::StringValue(s) => Ok(s.parse::<f64>().map(Rfloat::from).unwrap_or(Rfloat::na())),
                 ValueType::Int64Value(i) => Ok(Rfloat::from(i as f64)),
                 ValueType::Sint64Value(i) => Ok(Rfloat::from(i as f64)),
                 _ => {
@@ -33,17 +19,7 @@ pub fn parse_small_ints(x: Vec<Value>) -> Result<Doubles> {
             },
             None => Ok(Rfloat::na()),
         })
-        .collect::<Result<Doubles>>()?;
-
-    // rprintln!("{:?}", is_date);
-    if is_date.get().is_some_and(|x| *x) {
-        let date_res = res_vec
-            .set_class(["POSIXct", "POSIXt"])
-            .map_err(|e| anyhow!("{e}"))?
-            .clone();
-        return Ok(date_res);
-    }
-    Ok(res_vec)
+        .collect::<Result<Doubles>>()
 }
 
 pub fn parse_big_ints(x: Vec<Value>) -> Result<Doubles> {
