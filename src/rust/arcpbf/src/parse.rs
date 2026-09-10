@@ -1,25 +1,63 @@
+use std::cell::Cell;
 
 use anyhow::{anyhow, bail, Result};
+use chrono::NaiveDateTime;
 use esripbf::esri_p_buffer::feature_collection_p_buffer::value::ValueType;
 use esripbf::feature_collection_p_buffer::{FieldType, SpatialReference, Value};
 use extendr_api::prelude::*;
 
-// Functions to parse each field type
 pub fn parse_small_ints(x: Vec<Value>) -> Result<Doubles> {
-    x.into_iter()
+    let saw_date = Cell::new(false);
+    let saw_number = Cell::new(false);
+
+    let mut res_vec = x
+        .into_iter()
         .map(|xi| match xi.value_type {
             Some(x) => match x {
-                ValueType::SintValue(i) => Ok(Rfloat::from(i)),
-                ValueType::StringValue(s) => Ok(s.parse::<f64>().map(Rfloat::from).unwrap_or(Rfloat::na())),
-                ValueType::Int64Value(i) => Ok(Rfloat::from(i as f64)),
-                ValueType::Sint64Value(i) => Ok(Rfloat::from(i as f64)),
+                ValueType::SintValue(i) => {
+                    saw_number.set(true);
+                    Ok(Rfloat::from(i))
+                },
+                ValueType::StringValue(s) => {
+                    match chrono::NaiveDate::parse_from_str(&s, "%Y-%m-%d") {
+                        Ok(d) => {
+                            saw_date.set(true);
+                            Ok(Rfloat::from(NaiveDateTime::from(d).and_utc().timestamp() as i32))
+                        },
+                        Err(_) => match s.parse::<f64>() {
+                            Ok(n) => {
+                                saw_number.set(true);
+                                Ok(Rfloat::from(n))
+                            },
+                            Err(_) => Ok(Rfloat::na()),
+                        },
+                    }
+                },
+                ValueType::Int64Value(i) => {
+                    saw_number.set(true);
+                    Ok(Rfloat::from(i as f64))
+                },
+                ValueType::Sint64Value(i) => {
+                    saw_number.set(true);
+                    Ok(Rfloat::from(i as f64))
+                },
                 _ => {
                     bail!("Encountered unexpected value type of {x:?} please report an issue at https://github.com/R-ArcGIS/arcpbf/issues/new")
                 },
             },
             None => Ok(Rfloat::na()),
         })
-        .collect::<Result<Doubles>>()
+        .collect::<Result<Doubles>>()?;
+
+    if saw_date.get() && !saw_number.get() {
+        let date_res = res_vec
+            .set_class(["POSIXct", "POSIXt"])
+            .map_err(|e| anyhow!("{e}"))?
+            .clone();
+        return Ok(date_res);
+    }
+
+    Ok(res_vec)
 }
 
 pub fn parse_big_ints(x: Vec<Value>) -> Result<Doubles> {
