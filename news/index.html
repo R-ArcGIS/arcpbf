@@ -32,9 +32,11 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.3.0" id="arcpbf-030">arcpbf 0.3.0<a class="anchor" aria-label="anchor" href="#arcpbf-030"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.3.0" id="arcpbf-030">arcpbf 0.3.0<a class="anchor" aria-label="anchor" href="#arcpbf-030"></a></h2><p class="text-muted">CRAN release: 2026-08-21</p>
 <ul><li>Improves error handling when encountering parse errors.</li>
 <li>Adds support for Windows ARM <a href="https://github.com/R-ArcGIS/arcpbf/pull/20" class="external-link uri">https://github.com/R-ArcGIS/arcpbf/pull/20</a> <a href="https://github.com/jeroen" class="external-link">@jeroen</a></li>
+<li>Integer fields are no longer classed as dates when a value arrives as a string. The whole column was stamped <code>POSIXct</code> while its values stayed raw, so <code>34</code> rendered as <code>1969-12-31 17:00:34</code> <a href="https://github.com/R-ArcGIS/arcgislayers/issues/211" class="external-link uri">https://github.com/R-ArcGIS/arcgislayers/issues/211</a>
+</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="arcpbf-020">arcpbf 0.2.0<a class="anchor" aria-label="anchor" href="#arcpbf-020"></a></h2><p class="text-muted">CRAN release: 2025-10-22</p>

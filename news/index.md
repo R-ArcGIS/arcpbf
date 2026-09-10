@@ -2,10 +2,16 @@
 
 ## arcpbf 0.3.0
 
+CRAN release: 2026-08-21
+
 - Improves error handling when encountering parse errors.
 - Adds support for Windows ARM
   <https://github.com/R-ArcGIS/arcpbf/pull/20>
   [@jeroen](https://github.com/jeroen)
+- Integer fields are no longer classed as dates when a value arrives as
+  a string. The whole column was stamped `POSIXct` while its values
+  stayed raw, so `34` rendered as `1969-12-31 17:00:34`
+  <https://github.com/R-ArcGIS/arcgislayers/issues/211>
 
 ## arcpbf 0.2.0
 
