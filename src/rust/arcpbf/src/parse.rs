@@ -201,3 +201,6 @@ pub fn field_type_robj_mapper(fi: &FieldType) -> fn(Vec<Value>) -> Result<Robj> 
         },
     }
 }
+
+#[cfg(test)]
+mod tests;
