@@ -5,7 +5,7 @@ use anyhow::{anyhow, bail, Result};
 use extendr_api::prelude::*;
 
 use esripbf::feature_collection_p_buffer::{
-    CountResult, FeatureResult, FieldType, GeometryType, ObjectIdsResult, Value,
+    CountResult, ExtentCountResult, FeatureResult, FieldType, GeometryType, ObjectIdsResult, Value,
 };
 
 pub fn process_layer(fr: FeatureResult) -> Result<Robj> {
@@ -185,5 +185,31 @@ pub fn process_oid(x: ObjectIdsResult) -> Result<Robj> {
         .map_err(|e| anyhow!("{e}"))?
         .clone()
         .into();
+    Ok(res)
+}
+
+// Returns the extent as a named bbox vector with `sr` and `count` attributes
+pub fn process_extent(x: ExtentCountResult) -> Result<Robj> {
+    let extent = x
+        .extent
+        .ok_or_else(|| anyhow!("ExtentCountResult is missing an extent"))?;
+
+    let count = x.count.map_or(Rfloat::na(), |n| Rfloat::from(n as f64));
+
+    let mut res = Doubles::from_values([extent.x_min, extent.y_min, extent.x_max, extent.y_max])
+        .into_robj()
+        .set_names(["xmin", "ymin", "xmax", "ymax"])
+        .map_err(|e| anyhow!("{e}"))?
+        .set_attrib("count", count)
+        .map_err(|e| anyhow!("{e}"))?
+        .set_class(["pbf_extent"])
+        .map_err(|e| anyhow!("{e}"))?
+        .clone();
+
+    if let Some(sr) = extent.spatial_reference {
+        res.set_attrib("sr", parse_spatial_ref(sr))
+            .map_err(|e| anyhow!("{e}"))?;
+    }
+
     Ok(res)
 }

@@ -3,10 +3,10 @@ mod geometry;
 mod parse;
 use parse::field_type_robj_mapper;
 mod table;
-use process::{process_counts, process_feature_result, process_oid};
+use process::{process_counts, process_extent, process_feature_result, process_oid};
 mod process;
 mod temporal;
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, Result};
 use esripbf::{
     esri_p_buffer::FeatureCollectionPBuffer, feature_collection_p_buffer::query_result::Results,
 };
@@ -48,7 +48,7 @@ fn process_pbf_(proto: &[u8]) -> Result<Robj> {
         Results::FeatureResult(fr) => process_feature_result(fr),
         Results::CountResult(cr) => process_counts(cr),
         Results::IdsResult(ids) => process_oid(ids),
-        Results::ExtentCountResult(_) => bail!("Extent results are not supported"),
+        Results::ExtentCountResult(ecr) => process_extent(ecr),
     }
 }
 
@@ -61,7 +61,7 @@ fn process_pbf_(proto: &[u8]) -> Result<Robj> {
 ///
 /// @details
 ///
-/// There are three types of PBF FeatureCollection responses that may be
+/// There are four types of PBF FeatureCollection responses that may be
 /// returned.
 ///
 /// ### Feature Result
@@ -82,10 +82,19 @@ fn process_pbf_(proto: &[u8]) -> Result<Robj> {
 /// `data.frame` is returned containing the object IDs and the column name
 /// set to the object ID field name in the feature service.
 ///
+/// ### Extent Result
+///
+/// When `returnExtentOnly` is `true`, a server may return an extent result. In this
+/// case a named numeric vector of `xmin`, `ymin`, `xmax`, and `ymax` is returned
+/// with the spatial reference in the `sr` attribute and the feature count, if
+/// requested, in the `count` attribute. [`post_process_pbf()`] converts it to an
+/// `sf` `bbox`.
+///
 /// @returns
 ///
 /// - For count results, a scalar integer.
 /// - For object ID results a `data.frame` with one column.
+/// - For extent results a named numeric vector of class `pbf_extent`.
 /// - For pbfs that contain geometries, a list of 3 elements:
 ///     - `attributes` is a `data.frame` of the fields of the FeatureCollection
 ///     - `geometry` is an sfc object _**without a computed bounding box or coordinate reference system set**_
@@ -159,7 +168,7 @@ fn read_pbf_(path: &str) -> Result<Robj> {
         Results::FeatureResult(fr) => process_feature_result(fr),
         Results::CountResult(cr) => process_counts(cr),
         Results::IdsResult(ids) => process_oid(ids),
-        Results::ExtentCountResult(_) => bail!("Extent results are not supported"),
+        Results::ExtentCountResult(ecr) => process_extent(ecr),
     }
 }
 

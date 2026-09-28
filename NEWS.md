@@ -8,6 +8,7 @@
 * `esriFieldTypeXML` fields are now returned as character instead of an empty list with an unsupported field type message.
 * `esriFieldTypeSmallInteger` and `esriFieldTypeInteger` fields are no longer classed as `POSIXct` when every value is a date string. Non-numeric strings in these fields are `NA`. This removes the workaround for <https://github.com/R-ArcGIS/arcgislayers/issues/211>, which was caused by date-only fields being misread as small integers.
 * Explicit null values sent by newer services are now read as `NA`.
+* Extent results (`returnExtentOnly = true`) are now returned as a named numeric vector of class `pbf_extent`, with `sr` and `count` attributes. `post_process_pbf()` converts them to an `sf` `bbox`.
 
 # arcpbf 0.3.0
 
