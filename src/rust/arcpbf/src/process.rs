@@ -24,6 +24,7 @@ pub fn process_layer(fr: FeatureResult) -> Result<Robj> {
             bail!("Multipatch geometries are not supported")
         }
         GeometryType::EsriGeometryTypeNone => bail!("Geometry type 'None' is not supported"),
+        GeometryType::EsriGeometryTypeEnvelope => bail!("Envelope geometries are not supported"),
     };
 
     let sfc_class = match fr.geometry_type() {

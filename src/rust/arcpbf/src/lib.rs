@@ -5,7 +5,8 @@ use parse::field_type_robj_mapper;
 mod table;
 use process::{process_counts, process_feature_result, process_oid};
 mod process;
-use anyhow::{anyhow, Result};
+mod temporal;
+use anyhow::{anyhow, bail, Result};
 use esripbf::{
     esri_p_buffer::FeatureCollectionPBuffer, feature_collection_p_buffer::query_result::Results,
 };
@@ -47,6 +48,7 @@ fn process_pbf_(proto: &[u8]) -> Result<Robj> {
         Results::FeatureResult(fr) => process_feature_result(fr),
         Results::CountResult(cr) => process_counts(cr),
         Results::IdsResult(ids) => process_oid(ids),
+        Results::ExtentCountResult(_) => bail!("Extent results are not supported"),
     }
 }
 
@@ -157,6 +159,7 @@ fn read_pbf_(path: &str) -> Result<Robj> {
         Results::FeatureResult(fr) => process_feature_result(fr),
         Results::CountResult(cr) => process_counts(cr),
         Results::IdsResult(ids) => process_oid(ids),
+        Results::ExtentCountResult(_) => bail!("Extent results are not supported"),
     }
 }
 

@@ -14,7 +14,8 @@ use core::ops::Range;
 pub fn read_poly(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scale) -> Result<List> {
     // if none return an empty list
     let geoms = match x {
-        None => return Ok(list!()),
+        // Curve geometries are not yet decoded and read as empty
+        None | Some(CompressedGeometry::CurveGeometry(_)) => return Ok(list!()),
         Some(CompressedGeometry::Geometry(g)) => g,
         Some(CompressedGeometry::ShapeBuffer(_)) => bail!("ShapeBuffer geometry is not supported"),
     };
