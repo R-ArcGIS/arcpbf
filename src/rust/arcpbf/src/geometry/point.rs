@@ -8,7 +8,8 @@ use crate::geometry::delta_decode;
 // Read a single point geometry
 pub fn read_point(x: Option<CompressedGeometry>, trans: &Translate, scale: &Scale) -> Result<Robj> {
     let mut crds = match x {
-        None => {
+        // Curve geometries are not yet decoded and read as empty
+        None | Some(CompressedGeometry::CurveGeometry(_)) => {
             let empty_pnt = Doubles::from_values([Rfloat::na(); 2])
                 .into_robj()
                 .set_class(&["XY", "POINT", "sfg"])
@@ -37,7 +38,8 @@ pub fn read_multipoint(
     scale: &Scale,
 ) -> Result<Robj> {
     let mut crds = match x {
-        None => {
+        // Curve geometries are not yet decoded and read as empty
+        None | Some(CompressedGeometry::CurveGeometry(_)) => {
             let empty_mpnt = Doubles::new(0)
                 .into_robj()
                 .set_attrib("dim", Integers::from_values([0, 2]))

@@ -33,7 +33,9 @@
 #' fc <- read_pbf(fc_fp)
 #' head(post_process_pbf(fc))
 post_process_pbf <- function(x, use_sf = TRUE) {
-  if (is.data.frame(x)) {
+  if (inherits(x, "pbf_extent")) {
+    post_process_extent(x, use_sf)
+  } else if (is.data.frame(x)) {
     x
   } else if (is.list(x) && !is.null(names(x))) {
     x <- post_process_single(x, use_sf)
@@ -49,7 +51,9 @@ post_process_pbf <- function(x, use_sf = TRUE) {
 }
 
 post_process_single <- function(x, use_sf) {
-  if (is.data.frame(x)) {
+  if (inherits(x, "pbf_extent")) {
+    post_process_extent(x, use_sf)
+  } else if (is.data.frame(x)) {
     x
   } else if (use_sf && !is.data.frame(x) && is.list(x) && !is.null(names(x))) {
     rlang::check_installed("sf", "to create `sf` objects.")
@@ -92,4 +96,21 @@ post_process_list <- function(x, use_sf) {
   }
 
   x
+}
+
+post_process_extent <- function(x, use_sf) {
+  if (!use_sf) {
+    return(x)
+  }
+
+  rlang::check_installed("sf", "to create `sf` objects.")
+
+  sr <- attr(x, "sr")
+  crs <- if (is.null(sr)) sf::NA_crs_ else arcgisutils::from_spatial_reference(sr)
+  res <- sf::st_bbox(
+    c(xmin = x[["xmin"]], ymin = x[["ymin"]], xmax = x[["xmax"]], ymax = x[["ymax"]]),
+    crs = crs
+  )
+  attr(res, "count") <- attr(x, "count")
+  res
 }
