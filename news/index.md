@@ -1,5 +1,31 @@
 # Changelog
 
+## arcpbf (development version)
+
+- Updates to the current Esri `FeatureCollection.proto`, which adds the
+  `esriFieldTypeBigInteger`, `esriFieldTypeDateOnly`,
+  `esriFieldTypeTimeOnly`, and `esriFieldTypeTimestampOffset` field
+  types. Previously these were all read as small integers.
+  - `esriFieldTypeDateOnly` fields are now returned as `Date` instead of
+    `POSIXct`.
+  - `esriFieldTypeTimestampOffset` fields are now returned as `POSIXct`
+    in UTC instead of `NA`. The original offset is not kept.
+  - `esriFieldTypeTimeOnly` fields are now returned as character
+    (e.g. `"14:35:00.927"`) instead of `NA`.
+  - `esriFieldTypeBigInteger` fields are now returned as doubles.
+- `esriFieldTypeXML` fields are now returned as character instead of an
+  empty list with an unsupported field type message.
+- `esriFieldTypeSmallInteger` and `esriFieldTypeInteger` fields are no
+  longer classed as `POSIXct` when every value is a date string.
+  Non-numeric strings in these fields are `NA`. This removes the
+  workaround for <https://github.com/R-ArcGIS/arcgislayers/issues/211>,
+  which was caused by date-only fields being misread as small integers.
+- Explicit null values sent by newer services are now read as `NA`.
+- Extent results (`returnExtentOnly = true`) are now returned as a named
+  numeric vector of class `pbf_extent`, with `sr` and `count`
+  attributes. [`post_process_pbf()`](../reference/post_process_pbf.md)
+  converts them to an `sf` `bbox`.
+
 ## arcpbf 0.3.0
 
 CRAN release: 2026-08-21

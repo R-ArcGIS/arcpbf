@@ -32,6 +32,25 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="arcpbf-development-version">arcpbf (development version)<a class="anchor" aria-label="anchor" href="#arcpbf-development-version"></a></h2>
+<ul><li>Updates to the current Esri <code>FeatureCollection.proto</code>, which adds the <code>esriFieldTypeBigInteger</code>, <code>esriFieldTypeDateOnly</code>, <code>esriFieldTypeTimeOnly</code>, and <code>esriFieldTypeTimestampOffset</code> field types. Previously these were all read as small integers.
+<ul><li>
+<code>esriFieldTypeDateOnly</code> fields are now returned as <code>Date</code> instead of <code>POSIXct</code>.</li>
+<li>
+<code>esriFieldTypeTimestampOffset</code> fields are now returned as <code>POSIXct</code> in UTC instead of <code>NA</code>. The original offset is not kept.</li>
+<li>
+<code>esriFieldTypeTimeOnly</code> fields are now returned as character (e.g. <code>"14:35:00.927"</code>) instead of <code>NA</code>.</li>
+<li>
+<code>esriFieldTypeBigInteger</code> fields are now returned as doubles.</li>
+</ul></li>
+<li>
+<code>esriFieldTypeXML</code> fields are now returned as character instead of an empty list with an unsupported field type message.</li>
+<li>
+<code>esriFieldTypeSmallInteger</code> and <code>esriFieldTypeInteger</code> fields are no longer classed as <code>POSIXct</code> when every value is a date string. Non-numeric strings in these fields are <code>NA</code>. This removes the workaround for <a href="https://github.com/R-ArcGIS/arcgislayers/issues/211" class="external-link uri">https://github.com/R-ArcGIS/arcgislayers/issues/211</a>, which was caused by date-only fields being misread as small integers.</li>
+<li>Explicit null values sent by newer services are now read as <code>NA</code>.</li>
+<li>Extent results (<code>returnExtentOnly = true</code>) are now returned as a named numeric vector of class <code>pbf_extent</code>, with <code>sr</code> and <code>count</code> attributes. <code><a href="../reference/post_process_pbf.html">post_process_pbf()</a></code> converts them to an <code>sf</code> <code>bbox</code>.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.0" id="arcpbf-030">arcpbf 0.3.0<a class="anchor" aria-label="anchor" href="#arcpbf-030"></a></h2><p class="text-muted">CRAN release: 2026-08-21</p>
 <ul><li>Improves error handling when encountering parse errors.</li>
 <li>Adds support for Windows ARM <a href="https://github.com/R-ArcGIS/arcpbf/pull/20" class="external-link uri">https://github.com/R-ArcGIS/arcpbf/pull/20</a> <a href="https://github.com/jeroen" class="external-link">@jeroen</a></li>
