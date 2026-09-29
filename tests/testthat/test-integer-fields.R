@@ -12,12 +12,11 @@ test_that("integer fields are not classed as dates (#211)", {
       resultRecordCount = "50"
     ) |>
     httr2::req_perform() |>
-    (\(x) process_pbf(x$body))()
+    (\(x) post_process_pbf(process_pbf(x$body), use_sf = FALSE))()
 
-  res <- res[["attributes"]]
 
   expect_false(inherits(res$Acres, "POSIXct"))
-  expect_type(res$Acres, "double")
+  expect_type(res$Acres, "integer")
   expect_s3_class(res$StartDate, "POSIXct")
 })
 
@@ -35,9 +34,8 @@ test_that("integer field values survive intact (#211)", {
       resultRecordCount = "50"
     ) |>
     httr2::req_perform() |>
-    (\(x) process_pbf(x$body))()
+    (\(x) post_process_pbf(process_pbf(x$body), use_sf = FALSE))()
 
-  res <- res[["attributes"]]
 
   expect_true(all(res$Acres > 0))
   expect_false(anyNA(res$Acres))

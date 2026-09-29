@@ -26,6 +26,9 @@ geometry. However, if each element is \emph{not} the same, the post-processing
 \emph{will} error. If you cannot be certain that all elements that you will be
 post processing will be the same, post-process each list element
 independently.
+
+Feature results arrive as a \code{nanoarrow_array_stream}. With \code{use_sf = FALSE}
+they become a \code{data.frame} whose \code{geometry} column is a \code{geoarrow_vctr}.
 }
 \examples{
 tbl_fp <- system.file("small-table.pbf", package = "arcpbf")

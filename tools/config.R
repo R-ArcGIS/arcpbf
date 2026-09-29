@@ -1,3 +1,6 @@
+# Note: Any variables prefixed with `.` are used for text
+# replacement in the Makevars.in and Makevars.win.in
+
 # check the packages MSRV first
 source("tools/msrv.R")
 
@@ -34,11 +37,57 @@ if (!is_not_cran) {
 .profile <- ifelse(is_debug, "", "--release")
 .clean_targets <- ifelse(is_debug, "", "$(TARGET_DIR)")
 
-# when we are using a debug build we need to use target/debug instead of target/release
-.libdir <- ifelse(is_debug, "debug", "release")
+# We specify this target when building for webR
+webr_target <- "wasm32-unknown-emscripten"
 
-# read in the Makevars.in file
+# here we check if the platform we are building for is webr
+is_wasm <- identical(R.version$platform, webr_target)
+
+# print to terminal to inform we are building for webr
+if (is_wasm) {
+  message("Building for WebR")
+}
+
+# we check if we are making a debug build or not
+# if so, the LIBDIR environment variable becomes:
+# LIBDIR = $(TARGET_DIR)/{wasm32-unknown-emscripten}/debug
+# this will be used to fill out the LIBDIR env var for Makevars.in
+target_libpath <- if (is_wasm) "wasm32-unknown-emscripten" else NULL
+cfg <- if (is_debug) "debug" else "release"
+
+# used to replace @LIBDIR@
+.libdir <- paste(c(target_libpath, cfg), collapse = "/")
+
+# use this to replace @TARGET@
+# we specify the target _only_ on webR
+# there may be use cases later where this can be adapted or expanded
+.target <- ifelse(is_wasm, paste0("--target=", webr_target), "")
+
+# add panic exports only for WASM builds
+.panic_exports <- ifelse(
+  is_wasm,
+  "CARGO_PROFILE_DEV_PANIC=\"abort\" CARGO_PROFILE_RELEASE_PANIC=\"abort\" ",
+  ""
+)
+
+# the document executable needs the frameworks chrono links on macOS (extendr/rextendr#550)
+.document_libs <- ifelse(
+  Sys.info()[["sysname"]] == "Darwin",
+  "-framework CoreFoundation",
+  ""
+)
+
+# read in the Makevars.in file checking
 is_windows <- .Platform[["OS.type"]] == "windows"
+.windows_target <- if (grepl("aarch", R.version$platform)) {
+  "aarch64-pc-windows-gnullvm"
+} else if (grepl("clang", Sys.getenv("R_COMPILED_BY"))) {
+  "x86_64-pc-windows-gnullvm"
+} else if (grepl("i386", R.version$platform)) {
+  "i686-pc-windows-gnu"
+} else {
+  "x86_64-pc-windows-gnu"
+}
 
 # if windows we replace in the Makevars.win.in
 mv_fp <- ifelse(
@@ -54,7 +103,7 @@ mv_ofp <- ifelse(
   "src/Makevars"
 )
 
-# delete the existing Makevars{.win}
+# delete the existing Makevars{.win/.wasm}
 if (file.exists(mv_ofp)) {
   message("Cleaning previous `", mv_ofp, "`.")
   invisible(file.remove(mv_ofp))
@@ -63,22 +112,15 @@ if (file.exists(mv_ofp)) {
 # read as a single string
 mv_txt <- readLines(mv_fp)
 
-.windows_target <- if (grepl("aarch", R.version$platform)) {
-  "aarch64-pc-windows-gnullvm"
-} else if (grepl("clang", Sys.getenv("R_COMPILED_BY"))) {
-  "x86_64-pc-windows-gnullvm"
-} else if (grepl("i386", R.version$platform)) {
-  "i686-pc-windows-gnu"
-} else {
-  "x86_64-pc-windows-gnu"
-}
-
 # replace placeholder values
 new_txt <- gsub("@CRAN_FLAGS@", .cran_flags, mv_txt) |>
-  gsub("@WINDOWS_TARGET@", .windows_target, x = _) |>
   gsub("@PROFILE@", .profile, x = _) |>
+  gsub("@WINDOWS_TARGET@", .windows_target, x = _) |>
   gsub("@CLEAN_TARGET@", .clean_targets, x = _) |>
-  gsub("@LIBDIR@", .libdir, x = _)
+  gsub("@LIBDIR@", .libdir, x = _) |>
+  gsub("@TARGET@", .target, x = _) |>
+  gsub("@PANIC_EXPORTS@", .panic_exports, x = _) |>
+  gsub("@DOCUMENT_LIBS@", .document_libs, x = _)
 
 message("Writing `", mv_ofp, "`.")
 con <- file(mv_ofp, open = "wb")

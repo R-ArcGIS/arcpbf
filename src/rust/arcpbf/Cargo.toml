@@ -3,7 +3,7 @@ name = 'arcpbf'
 publish = false
 version = '0.1.0'
 edition = '2021'
-rust-version = "1.70"
+rust-version = "1.95"
 
 [lib]
 crate-type = ['staticlib']
@@ -11,10 +11,10 @@ name = 'arcpbf'
 
 [dependencies]
 extendr-api = "0.9.0"
-esripbf = { path = "../esripbf" }
+esripbf = { path = "/Users/josi/github/serde_esri/esripbf", features = ["geoarrow"] }
+arrow_extendr = { path = "/Users/josi/github/arrow-extendr" }
+arrow-array = "59"
 prost = "0.12.1"
-once_cell = "*"
-chrono = "*"
 anyhow = "1"
 
 [profile.release]

@@ -11,9 +11,13 @@
 #' post processing will be the same, post-process each list element
 #' independently.
 #'
+#' Feature results arrive as a `nanoarrow_array_stream`. With `use_sf = FALSE`
+#' they become a `data.frame` whose `geometry` column is a `geoarrow_vctr`.
+#'
 #' @param x an object as returned by `process_pbf()` or `read_pbf()`
 #' @param use_sf default `TRUE`. Whether or not to return an `sf` object.
-
+#' @importFrom geoarrow as_geoarrow_vctr
+#' @importFrom nanoarrow convert_array_stream
 #' @export
 #' @returns
 #'
@@ -33,50 +37,31 @@
 #' fc <- read_pbf(fc_fp)
 #' head(post_process_pbf(fc))
 post_process_pbf <- function(x, use_sf = TRUE) {
-  if (inherits(x, "pbf_extent")) {
+  if (inherits(x, "nanoarrow_array_stream")) {
+    post_process_arrow(x, use_sf)
+  } else if (inherits(x, "pbf_extent")) {
     post_process_extent(x, use_sf)
-  } else if (is.data.frame(x)) {
-    x
-  } else if (is.list(x) && !is.null(names(x))) {
-    x <- post_process_single(x, use_sf)
-    if (use_sf) {
-      x[[attr(x, "sf_column")]] <- sf::st_sfc(x[[attr(x, "sf_column")]])
-    }
-    x
-  } else if (is.list(x) && is.null(names(x))) {
+  } else if (is.list(x) && !is.data.frame(x)) {
     post_process_list(x, use_sf)
   } else {
     x
   }
 }
 
-post_process_single <- function(x, use_sf) {
-  if (inherits(x, "pbf_extent")) {
-    post_process_extent(x, use_sf)
-  } else if (is.data.frame(x)) {
-    x
-  } else if (use_sf && !is.data.frame(x) && is.list(x) && !is.null(names(x))) {
-    rlang::check_installed("sf", "to create `sf` objects.")
-
-    sf_crs <- arcgisutils::from_spatial_reference(x[["sr"]])
-    sf::st_sf(
-      x[["attributes"]],
-      geometry = x[["geometry"]],
-      crs = sf_crs
-    )
-  } else if (is.list(x)) {
-    sr_info <- x[["sr"]]
-    x <- cbind(x[["attributes"]], x[["geometry"]])
-    attr(x, "crs") <- sr_info
-    x
-  } else {
-    x
+post_process_arrow <- function(x, use_sf) {
+  res <- convert_array_stream(x)
+  if (!use_sf || is.null(res[["geometry"]])) {
+    return(res)
   }
+
+  rlang::check_installed("sf", "to create `sf` objects.")
+  res[["geometry"]] <- sf::st_as_sfc(res[["geometry"]])
+  sf::st_as_sf(res)
 }
 
 post_process_list <- function(x, use_sf) {
   for (i in seq_along(x)) {
-    x[[i]] <- post_process_single(x[[i]], use_sf)
+    x[[i]] <- post_process_pbf(x[[i]], use_sf)
   }
 
   # check the class of the first element

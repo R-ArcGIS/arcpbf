@@ -13,21 +13,18 @@ process_pbf(proto)
 \itemize{
 \item For count results, a scalar integer.
 \item For object ID results a \code{data.frame} with one column.
-\item For pbfs that contain geometries, a list of 3 elements:
-\itemize{
-\item \code{attributes} is a \code{data.frame} of the fields of the FeatureCollection
-\item \code{geometry} is an sfc object \emph{\strong{without a computed bounding box or coordinate reference system set}}
-\item \code{sr} is a named list of the spatial reference of the feature collection
-}
+\item For extent results a named numeric vector of class \code{pbf_extent}.
+\item For feature results, a \code{nanoarrow_array_stream} with a column per field and, for layers,
+a GeoArrow \code{geometry} column carrying the CRS.
 }
 
-\strong{Important}: Use \code{\link[=post_process_pbf]{post_process_pbf()}} to convert to an \code{sf} object with a computed bounding box and CRS.
+\strong{Important}: Use \code{\link[=post_process_pbf]{post_process_pbf()}} to convert feature results to a \code{data.frame} or \code{sf} object.
 }
 \description{
 Process a pbf from a raw vector or a list of raw vectors.
 }
 \details{
-There are three types of PBF FeatureCollection responses that may be
+There are four types of PBF FeatureCollection responses that may be
 returned.
 \subsection{Feature Result}{
 
@@ -48,6 +45,15 @@ is returned.
 In the case that the query parameter \code{returnIdsOnly} is \code{true}, a
 \code{data.frame} is returned containing the object IDs and the column name
 set to the object ID field name in the feature service.
+}
+
+\subsection{Extent Result}{
+
+When \code{returnExtentOnly} is \code{true}, a server may return an extent result. In this
+case a named numeric vector of \code{xmin}, \code{ymin}, \code{xmax}, and \code{ymax} is returned
+with the spatial reference in the \code{sr} attribute and the feature count, if
+requested, in the \code{count} attribute. \code{\link[=post_process_pbf]{post_process_pbf()}} converts it to an
+\code{sf} \code{bbox}.
 }
 }
 \examples{

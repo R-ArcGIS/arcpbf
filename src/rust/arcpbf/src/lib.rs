@@ -1,14 +1,12 @@
 use extendr_api::prelude::*;
-mod geometry;
-mod parse;
-use parse::field_type_robj_mapper;
-mod table;
-use process::{process_counts, process_extent, process_feature_result, process_oid};
+use process::{process_counts, process_extent, process_oid};
 mod process;
-mod temporal;
 use anyhow::{anyhow, Result};
+use arrow_array::{RecordBatch, RecordBatchIterator};
+use arrow_extendr::IntoArrowRobj;
 use esripbf::{
-    esri_p_buffer::FeatureCollectionPBuffer, feature_collection_p_buffer::query_result::Results,
+    feature_collection_p_buffer::{query_result::Results, FeatureResult},
+    FeatureCollectionPBuffer,
 };
 use prost::Message;
 use std::io::Cursor;
@@ -35,21 +33,32 @@ fn open_pbf(path: &str) -> Result<Raw> {
     Ok(Raw::from_bytes(&crs.into_inner()))
 }
 
-fn process_pbf_(proto: &[u8]) -> Result<Robj> {
-    let fc = FeatureCollectionPBuffer::decode(proto)
-        .map_err(|e| anyhow!("failed to decode FeatureCollectionPBuffer: {e}"))?;
-    let res = fc
+fn decode_pbf(proto: &[u8]) -> Result<Results> {
+    FeatureCollectionPBuffer::decode(proto)
+        .map_err(|e| anyhow!("failed to decode FeatureCollectionPBuffer: {e}"))?
         .query_result
         .ok_or_else(|| anyhow!("pbf is missing query_result"))?
         .results
-        .ok_or_else(|| anyhow!("pbf query_result is missing results"))?;
+        .ok_or_else(|| anyhow!("pbf query_result is missing results"))
+}
 
+fn feature_batch(fr: FeatureResult) -> Result<RecordBatch> {
+    RecordBatch::try_from(fr).map_err(|e| anyhow!("{e}"))
+}
+
+fn process_results(res: Results) -> Result<Robj> {
     match res {
-        Results::FeatureResult(fr) => process_feature_result(fr),
+        Results::FeatureResult(fr) => {
+            feature_batch(fr)?.into_arrow_robj().map_err(|e| anyhow!("{e}"))
+        }
         Results::CountResult(cr) => process_counts(cr),
         Results::IdsResult(ids) => process_oid(ids),
         Results::ExtentCountResult(ecr) => process_extent(ecr),
     }
+}
+
+fn process_pbf_(proto: &[u8]) -> Result<Robj> {
+    process_results(decode_pbf(proto)?)
 }
 
 #[extendr]
@@ -95,12 +104,10 @@ fn process_pbf_(proto: &[u8]) -> Result<Robj> {
 /// - For count results, a scalar integer.
 /// - For object ID results a `data.frame` with one column.
 /// - For extent results a named numeric vector of class `pbf_extent`.
-/// - For pbfs that contain geometries, a list of 3 elements:
-///     - `attributes` is a `data.frame` of the fields of the FeatureCollection
-///     - `geometry` is an sfc object _**without a computed bounding box or coordinate reference system set**_
-///     - `sr` is a named list of the spatial reference of the feature collection
+/// - For feature results, a `nanoarrow_array_stream` with a column per field and, for layers,
+///   a GeoArrow `geometry` column carrying the CRS.
 ///
-/// **Important**: Use [`post_process_pbf()`] to convert to an `sf` object with a computed bounding box and CRS.
+/// **Important**: Use [`post_process_pbf()`] to convert feature results to a `data.frame` or `sf` object.
 ///
 /// @export
 ///
@@ -153,29 +160,13 @@ fn process_pbf(proto: Robj) -> Result<Robj> {
 #[extendr]
 fn read_pbf_(path: &str) -> Result<Robj> {
     let ff = std::fs::read(path).map_err(|e| anyhow!("failed to read pbf file {path}: {e}"))?;
-    let crs = Cursor::new(ff);
-    let fc = FeatureCollectionPBuffer::decode(crs)
-        .map_err(|e| anyhow!("failed to decode FeatureCollectionPBuffer: {e}"))?;
-    let res = fc
-        .query_result
-        .ok_or_else(|| anyhow!("pbf is missing query_result"))?
-        .results
-        .ok_or_else(|| anyhow!("pbf query_result is missing results"))?;
-
-    // There are 3 different types of queries that we can expect:
-    // Feature Query Results, ObjectID results, or FeatureCount results
-    match res {
-        Results::FeatureResult(fr) => process_feature_result(fr),
-        Results::CountResult(cr) => process_counts(cr),
-        Results::IdsResult(ids) => process_oid(ids),
-        Results::ExtentCountResult(ecr) => process_extent(ecr),
-    }
+    process_pbf_(&ff)
 }
 
-// Attempts to process a single httr2_response element.
+// Attempts to decode a single httr2_response element.
 // Returns Ok(None) for responses that are intentionally skipped (non-200,
 // wrong content type, etc.) and Err(_) for malformed responses.
-fn multi_resp_process_one(ri: Robj) -> Result<Option<Robj>> {
+fn multi_resp_process_one(ri: Robj) -> Result<Option<Results>> {
     if !ri.inherits("httr2_response") {
         return Ok(None);
     }
@@ -212,24 +203,65 @@ fn multi_resp_process_one(ri: Robj) -> Result<Option<Robj>> {
         .as_raw_slice()
         .ok_or_else(|| anyhow!("httr2_response body could not be read as bytes"))?;
 
-    process_pbf_(body).map(Some)
+    decode_pbf(body).map(Some)
 }
 
+// Feature results sharing a schema become one Arrow stream with a batch per response;
+// anything else is a list with an element per response, NULL for those skipped.
 #[extendr]
-fn multi_resp_process_(resps: List) -> List {
-    let res_vec = resps
+fn multi_resp_process_(resps: List) -> Robj {
+    let decoded = resps
         .into_iter()
-        .map(|(_, ri)| match multi_resp_process_one(ri) {
-            Ok(Some(robj)) => robj,
-            Ok(None) => ().into_robj(),
-            Err(e) => {
+        .map(|(_, ri)| {
+            multi_resp_process_one(ri).unwrap_or_else(|e| {
                 eprintln!("Warning message:\nFailed to process response: {e}");
-                ().into_robj()
-            }
+                None
+            })
         })
         .collect::<Vec<_>>();
 
-    List::from_values(res_vec)
+    let all_features = decoded
+        .iter()
+        .flatten()
+        .all(|r| matches!(r, Results::FeatureResult(_)));
+    if all_features {
+        let batches = decoded
+            .into_iter()
+            .flatten()
+            .filter_map(|r| match r {
+                Results::FeatureResult(fr) => feature_batch(fr)
+                    .map_err(|e| eprintln!("Warning message:\nFailed to process response: {e}"))
+                    .ok(),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        let Some(schema) = batches.first().map(RecordBatch::schema) else {
+            return List::new(0).into_robj();
+        };
+        if batches.iter().all(|b| b.schema() == schema) {
+            let stream = RecordBatchIterator::new(batches.into_iter().map(Ok), schema);
+            return stream.into_arrow_robj().unwrap_or_else(|e| {
+                eprintln!("Warning message:\nFailed to process response: {e}");
+                ().into_robj()
+            });
+        }
+        let streams = batches.into_iter().map(|b| b.into_arrow_robj().unwrap_or_else(|_| ().into_robj()));
+        return List::from_values(streams.collect::<Vec<_>>()).into_robj();
+    }
+
+    let res_vec = decoded
+        .into_iter()
+        .map(|r| match r.map(process_results) {
+            Some(Ok(robj)) => robj,
+            Some(Err(e)) => {
+                eprintln!("Warning message:\nFailed to process response: {e}");
+                ().into_robj()
+            }
+            None => ().into_robj(),
+        })
+        .collect::<Vec<_>>();
+
+    List::from_values(res_vec).into_robj()
 }
 
 // This code illustrates how we can use rayon for this
